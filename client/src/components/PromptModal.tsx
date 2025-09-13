@@ -88,11 +88,11 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-h-[85vh] overflow-y-auto overscroll-contain max-w-4xl"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
         data-testid="modal-prompt"
       >
-        <DialogHeader className="pb-4">
+        {/* Фиксированный заголовок */}
+        <DialogHeader className="flex-shrink-0 pb-4">
           <div className="pr-10">
             <DialogTitle className="text-xl font-semibold">
               {prompt.title}
@@ -106,8 +106,12 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
           </Badge>
         </DialogHeader>
 
-        <div className="relative">
-          <div className="bg-muted/50 rounded-md p-4 min-h-[200px]">
+        {/* Скроллируемый блок с текстом */}
+        <div className="flex-1 min-h-0 relative">
+          <div 
+            className="h-full bg-muted/50 rounded-md overflow-y-auto overscroll-contain p-4"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
             <pre className="font-mono text-sm whitespace-pre-wrap break-words leading-relaxed max-w-full pr-16">
               {prompt.fullText}
             </pre>
@@ -123,7 +127,8 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
           </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground text-center mt-4">
+        {/* Фиксированный футер */}
+        <div className="flex-shrink-0 text-xs text-muted-foreground text-center mt-4">
           Нажмите Esc для закрытия или Ctrl+C для копирования
         </div>
       </DialogContent>
