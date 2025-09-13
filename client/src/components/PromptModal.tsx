@@ -119,7 +119,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
             </div>
             <Button
               onClick={handleCopy}
-              className="absolute top-6 right-8 flex items-center gap-2 z-10"
+              className="absolute top-6 right-10 flex items-center gap-2 z-10"
               size="sm"
               data-testid="button-copy-modal"
             >
