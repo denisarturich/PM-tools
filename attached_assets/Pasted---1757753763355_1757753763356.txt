@@ -1,0 +1,126 @@
+Задача: сделать, чтобы длинный текст промпта в модальном окне скроллился внутри модала (а не ломал верстку/не обрезался), включая iOS Safari.
+
+Требования к реализации:
+
+Модал (контейнер диалога) должен иметь ограничение по высоте и внутренний вертикальный скролл: max-height: 80–90vh; overflow-y: auto;
+
+Фон страницы при открытом модале — не скроллится (body lock), но контент модала — скроллится.
+
+Для мобильного Safari включить инерционный скролл: -webkit-overflow-scrolling: touch;.
+
+Сам текст промпта внутри <pre>/блока должен переноситься: white-space: pre-wrap; word-break: break-word; (иначе длинные строки «ломают» прокрутку).
+
+Убедиться, что нет глобальных обработчиков touchmove/wheel с preventDefault на оверлее, которые блокируют скролл контента.
+
+Если используется shadcn/ui (Radix Dialog) — задать классы на DialogContent; при необходимости обернуть содержимое в ScrollArea.
+
+Вариант A: на shadcn/ui (Radix Dialog)
+// components/PromptModal.tsx
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+type Props = {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  title: string;
+  summary: string;
+  fullText: string;
+};
+
+export default function PromptModal({ open, onOpenChange, title, summary, fullText }: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        // КЛЮЧЕВОЕ: ограничиваем высоту и включаем скролл ВНУТРИ модала
+        className="max-h-[85vh] overflow-y-auto overscroll-contain"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{summary}</DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-4">
+          <pre className="whitespace-pre-wrap break-words text-sm leading-6 max-w-full">
+            {fullText}
+          </pre>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+Если используете компонент ScrollArea из shadcn:
+
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+<DialogContent className="max-h-[85vh] p-0">
+  <div className="p-6">
+    <DialogHeader>…</DialogHeader>
+  </div>
+  <ScrollArea className="max-h-[65vh] px-6 pb-6">
+    <pre className="whitespace-pre-wrap break-words text-sm leading-6 max-w-full">
+      {fullText}
+    </pre>
+  </ScrollArea>
+</DialogContent>
+
+Вариант B: самописный модал на Tailwind
+// components/PromptModal.tsx
+export default function PromptModal({ open, onClose, title, summary, fullText }) {
+  if (!open) return null;
+  return (
+    <div
+      aria-modal="true"
+      role="dialog"
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      // фиксируем фон: через body-lock (см. ниже), а оверлей кликабелен
+    >
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      <div
+        className="
+          relative z-10 w-full max-w-3xl
+          bg-white rounded-2xl shadow-xl
+          max-h-[85vh] overflow-y-auto overscroll-contain
+          p-6
+        "
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <h2 className="text-xl font-semibold">{title}</h2>
+        <p className="text-sm text-gray-600">{summary}</p>
+
+        <div className="mt-4">
+          <pre className="whitespace-pre-wrap break-words text-sm leading-6 max-w-full">
+            {fullText}
+          </pre>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 rounded-md px-2 py-1 text-sm bg-gray-100 hover:bg-gray-200"
+          aria-label="Закрыть"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+Body-lock при открытом модале (чтобы фон не скроллился, а модал — скроллился):
+
+// где-то в корневом компоненте/хуке модала
+import { useEffect } from "react";
+
+function useBodyLock(locked: boolean) {
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    if (locked) document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = original; };
+  }, [locked]);
+}
+
+
+И использовать: useBodyLock(open);

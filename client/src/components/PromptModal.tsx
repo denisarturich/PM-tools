@@ -1,9 +1,9 @@
+import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, X } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 
 interface PromptModalProps {
   isOpen: boolean;
@@ -27,6 +27,17 @@ const STAGE_LABELS: Record<string, string> = {
 
 export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProps) {
   const { toast } = useToast();
+
+  // Body lock при открытом модале
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -76,8 +87,12 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" data-testid="modal-prompt">
-        <DialogHeader className="flex-shrink-0 space-y-3 pb-4">
+      <DialogContent 
+        className="max-h-[85vh] overflow-y-auto overscroll-contain max-w-4xl"
+        style={{ WebkitOverflowScrolling: "touch" }}
+        data-testid="modal-prompt"
+      >
+        <DialogHeader className="pb-4">
           <div className="pr-10">
             <DialogTitle className="text-xl font-semibold">
               {prompt.title}
@@ -86,28 +101,26 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
               {prompt.summary}
             </DialogDescription>
           </div>
-          <Badge className="bg-primary/10 text-primary w-fit">
+          <Badge className="bg-primary/10 text-primary w-fit mt-3">
             {STAGE_LABELS[prompt.stage] || prompt.stage}
           </Badge>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="relative h-full">
-            <div className="h-full overflow-y-auto bg-muted/50 rounded-md p-4">
-              <pre className="font-mono text-sm whitespace-pre-wrap leading-relaxed pr-16">
-                {prompt.fullText}
-              </pre>
-            </div>
-            <Button
-              onClick={handleCopy}
-              className="absolute top-2 right-2 flex items-center gap-2 z-10"
-              size="sm"
-              data-testid="button-copy-modal"
-            >
-              <Copy className="h-3 w-3" />
-              Скопировать
-            </Button>
+        <div className="relative">
+          <div className="bg-muted/50 rounded-md p-4 min-h-[200px]">
+            <pre className="font-mono text-sm whitespace-pre-wrap break-words leading-relaxed max-w-full pr-16">
+              {prompt.fullText}
+            </pre>
           </div>
+          <Button
+            onClick={handleCopy}
+            className="absolute top-2 right-2 flex items-center gap-2 z-10"
+            size="sm"
+            data-testid="button-copy-modal"
+          >
+            <Copy className="h-3 w-3" />
+            Скопировать
+          </Button>
         </div>
 
         <div className="text-xs text-muted-foreground text-center mt-4">
