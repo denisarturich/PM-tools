@@ -84,21 +84,6 @@ export default function PromptCard({
         <p className="text-muted-foreground leading-relaxed text-sm">
           {summary}
         </p>
-        
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-3">
-            {tags.map((tag) => (
-              <Badge 
-                key={tag} 
-                variant="outline" 
-                className="text-xs"
-                data-testid={`badge-tag-${tag}`}
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
       </CardContent>
 
       <CardFooter className="pt-0 flex gap-2">

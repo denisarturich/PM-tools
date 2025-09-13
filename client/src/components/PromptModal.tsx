@@ -93,16 +93,6 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
               </Badge>
             </div>
           </div>
-          
-          {prompt.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-3">
-              {prompt.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
