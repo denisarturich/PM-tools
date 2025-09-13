@@ -6,6 +6,7 @@ import PromptCard from "@/components/PromptCard";
 import PromptModal from "@/components/PromptModal";
 import EmptyState from "@/components/EmptyState";
 import ThemeToggle from "@/components/ThemeToggle";
+import Footer from "@/components/Footer";
 
 // Mock data - todo: remove mock functionality
 const MOCK_PROMPTS = [
@@ -272,10 +273,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header onSuggestPrompt={() => console.log('Suggest prompt clicked')} />
       
-      <main className="container mx-auto px-4 py-6">
+      <main className="flex-grow container mx-auto px-4 py-6">
         <div className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex-1 max-w-md">
@@ -322,6 +323,8 @@ export default function Home() {
         onClose={() => setIsModalOpen(false)}
         prompt={selectedPrompt}
       />
+      
+      <Footer />
     </div>
   );
 }
