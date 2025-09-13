@@ -77,30 +77,30 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" data-testid="modal-prompt">
-        <DialogHeader className="flex-shrink-0 pr-8">
-          <DialogTitle className="text-xl font-semibold mb-2">
-            {prompt.title}
-          </DialogTitle>
-          <DialogDescription className="text-base mb-3">
-            {prompt.summary}
-          </DialogDescription>
+        <DialogHeader className="flex-shrink-0 space-y-3 pb-4">
+          <div className="pr-10">
+            <DialogTitle className="text-xl font-semibold">
+              {prompt.title}
+            </DialogTitle>
+            <DialogDescription className="text-base mt-2">
+              {prompt.summary}
+            </DialogDescription>
+          </div>
           <Badge className="bg-primary/10 text-primary w-fit">
             {STAGE_LABELS[prompt.stage] || prompt.stage}
           </Badge>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 overflow-hidden">
           <div className="relative h-full">
-            <div className="h-full bg-muted/50 rounded-md overflow-hidden">
-              <div className="h-full overflow-y-auto">
-                <pre className="font-mono text-sm p-4 pr-20 whitespace-pre-wrap leading-relaxed">
-                  {prompt.fullText}
-                </pre>
-              </div>
+            <div className="h-full overflow-y-auto bg-muted/50 rounded-md p-4">
+              <pre className="font-mono text-sm whitespace-pre-wrap leading-relaxed pr-16">
+                {prompt.fullText}
+              </pre>
             </div>
             <Button
               onClick={handleCopy}
-              className="absolute top-2 right-2 flex items-center gap-2"
+              className="absolute top-2 right-2 flex items-center gap-2 z-10"
               size="sm"
               data-testid="button-copy-modal"
             >
