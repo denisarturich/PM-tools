@@ -1,11 +1,9 @@
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
-import SearchBar from "@/components/SearchBar";
 import Filters from "@/components/Filters";
 import PromptCard from "@/components/PromptCard";
 import PromptModal from "@/components/PromptModal";
 import EmptyState from "@/components/EmptyState";
-import ThemeToggle from "@/components/ThemeToggle";
 import Footer from "@/components/Footer";
 
 // Mock data - todo: remove mock functionality
@@ -211,60 +209,23 @@ const MOCK_PROMPTS = [
 ];
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedStage, setSelectedStage] = useState("all");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<typeof MOCK_PROMPTS[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Get all unique tags from prompts
-  const availableTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    MOCK_PROMPTS.forEach(prompt => {
-      prompt.tags.forEach(tag => tagSet.add(tag));
-    });
-    return Array.from(tagSet).sort();
-  }, []);
-
-  // Filter prompts based on search and filters
+  // Filter prompts based on stage only
   const filteredPrompts = useMemo(() => {
     return MOCK_PROMPTS.filter(prompt => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesSearch = 
-          prompt.title.toLowerCase().includes(query) ||
-          prompt.summary.toLowerCase().includes(query) ||
-          prompt.fullText.toLowerCase().includes(query);
-        if (!matchesSearch) return false;
-      }
-
       // Stage filter
       if (selectedStage !== "all" && prompt.stage !== selectedStage) {
         return false;
       }
-
-      // Tags filter
-      if (selectedTags.length > 0) {
-        const hasSelectedTag = selectedTags.some(tag => prompt.tags.includes(tag));
-        if (!hasSelectedTag) return false;
-      }
-
       return true;
     });
-  }, [searchQuery, selectedStage, selectedTags]);
-
-  const handleTagToggle = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
-  };
+  }, [selectedStage]);
 
   const handleClearFilters = () => {
     setSelectedStage("all");
-    setSelectedTags([]);
   };
 
   const handleExpandPrompt = (prompt: typeof MOCK_PROMPTS[0]) => {
@@ -277,23 +238,13 @@ export default function Home() {
       <Header onSuggestPrompt={() => console.log('Suggest prompt clicked')} />
       
       <main className="flex-grow container mx-auto px-4 py-6">
-        <div className="mb-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 max-w-md">
-              <SearchBar 
-                onSearch={setSearchQuery}
-                placeholder="Поиск промптов по названию, описанию или содержимому..."
-              />
-            </div>
-            <ThemeToggle />
-          </div>
-          
+        <div className="mb-6">
           <Filters
             selectedStage={selectedStage}
-            selectedTags={selectedTags}
-            availableTags={availableTags}
+            selectedTags={[]}
+            availableTags={[]}
             onStageChange={setSelectedStage}
-            onTagToggle={handleTagToggle}
+            onTagToggle={() => {}}
             onClearFilters={handleClearFilters}
           />
         </div>

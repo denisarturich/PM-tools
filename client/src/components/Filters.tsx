@@ -22,63 +22,36 @@ interface FiltersProps {
 
 export default function Filters({
   selectedStage,
-  selectedTags,
-  availableTags,
   onStageChange,
-  onTagToggle,
   onClearFilters
 }: FiltersProps) {
-  const hasActiveFilters = selectedStage !== "all" || selectedTags.length > 0;
+  const hasActiveFilters = selectedStage !== "all";
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-4">
-        <div className="min-w-48">
-          <Select value={selectedStage} onValueChange={onStageChange}>
-            <SelectTrigger data-testid="select-stage">
-              <SelectValue placeholder="Выберите этап" />
-            </SelectTrigger>
-            <SelectContent>
-              {STAGES.map((stage) => (
-                <SelectItem key={stage.value} value={stage.value}>
-                  {stage.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {hasActiveFilters && (
-          <button
-            onClick={onClearFilters}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="button-clear-filters"
-          >
-            Сбросить фильтры
-          </button>
-        )}
+    <div className="flex flex-wrap gap-4 items-center">
+      <div className="min-w-48">
+        <Select value={selectedStage} onValueChange={onStageChange}>
+          <SelectTrigger data-testid="select-stage">
+            <SelectValue placeholder="Выберите этап" />
+          </SelectTrigger>
+          <SelectContent>
+            {STAGES.map((stage) => (
+              <SelectItem key={stage.value} value={stage.value}>
+                {stage.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {availableTags.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">Теги:</h4>
-          <div className="flex flex-wrap gap-2">
-            {availableTags.map((tag) => (
-              <Badge
-                key={tag}
-                variant={selectedTags.includes(tag) ? "default" : "secondary"}
-                className="cursor-pointer hover-elevate"
-                onClick={() => onTagToggle(tag)}
-                data-testid={`tag-${tag}`}
-              >
-                {tag}
-                {selectedTags.includes(tag) && (
-                  <X className="ml-1 h-3 w-3" />
-                )}
-              </Badge>
-            ))}
-          </div>
-        </div>
+      {hasActiveFilters && (
+        <button
+          onClick={onClearFilters}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          data-testid="button-clear-filters"
+        >
+          Показать все
+        </button>
       )}
     </div>
   );
