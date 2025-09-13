@@ -109,23 +109,25 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
 
           {/* Body — СКРОЛЛИМ ТОЛЬКО ЭТО */}
           <div
-            className="min-h-0 flex-1 overflow-y-auto px-6 py-4 relative"
+            className="min-h-0 flex-1 overflow-y-auto px-6 py-4"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
-            <div className="bg-muted/50 rounded-md p-4 min-h-[200px]">
-              <pre className="font-mono text-sm whitespace-pre-wrap break-words leading-relaxed max-w-full pr-16">
+            <div className="bg-muted/50 rounded-md p-4 min-h-[200px] mb-4">
+              <pre className="font-mono text-sm whitespace-pre-wrap break-words leading-relaxed max-w-full">
                 {prompt.fullText}
               </pre>
             </div>
-            <Button
-              onClick={handleCopy}
-              className="absolute top-6 right-10 flex items-center gap-2 z-10"
-              size="sm"
-              data-testid="button-copy-modal"
-            >
-              <Copy className="h-3 w-3" />
-              Скопировать
-            </Button>
+            <div className="flex justify-center">
+              <Button
+                onClick={handleCopy}
+                className="flex items-center gap-2"
+                size="sm"
+                data-testid="button-copy-modal"
+              >
+                <Copy className="h-3 w-3" />
+                Скопировать
+              </Button>
+            </div>
           </div>
 
           {/* Footer — не скроллится */}
