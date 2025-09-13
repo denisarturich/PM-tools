@@ -18,7 +18,7 @@ interface PromptModalProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  discovery: "Discovery",
+  initiation: "Инициация",
   planning: "Планирование",
   execution: "Выполнение", 
   monitoring: "Мониторинг",
@@ -91,14 +91,6 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
               <Badge className="bg-primary/10 text-primary">
                 {STAGE_LABELS[prompt.stage] || prompt.stage}
               </Badge>
-              <Button 
-                size="icon"
-                variant="ghost"
-                onClick={onClose}
-                data-testid="button-close-modal"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </div>
           
@@ -115,9 +107,11 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
 
         <div className="flex-1 overflow-hidden">
           <div className="relative h-full">
-            <pre className="font-mono text-sm bg-muted/50 p-4 rounded-md h-full overflow-auto whitespace-pre-wrap leading-relaxed">
-              {prompt.fullText}
-            </pre>
+            <div className="h-full overflow-y-auto bg-muted/50 rounded-md">
+              <pre className="font-mono text-sm p-4 whitespace-pre-wrap leading-relaxed min-h-full">
+                {prompt.fullText}
+              </pre>
+            </div>
             <Button
               onClick={handleCopy}
               className="absolute top-2 right-2 flex items-center gap-2"

@@ -15,7 +15,7 @@ interface PromptCardProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  discovery: "Discovery",
+  initiation: "Инициация",
   planning: "Планирование", 
   execution: "Выполнение",
   monitoring: "Мониторинг",
@@ -23,7 +23,7 @@ const STAGE_LABELS: Record<string, string> = {
 };
 
 const STAGE_COLORS: Record<string, string> = {
-  discovery: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  initiation: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   planning: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   execution: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", 
   monitoring: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",

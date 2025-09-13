@@ -20,19 +20,20 @@ export default function Header({ onSuggestPrompt }: HeaderProps) {
 
   return (
     <header className="border-b bg-card">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col">
-            <h1 className="text-xl font-semibold text-foreground">
+            <h1 className="text-lg font-semibold text-foreground">
               Справочник промптов для менеджеров проектов
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Готовые шаблоны промптов для любых этапов проекта
             </p>
           </div>
           
           <Button 
             onClick={handleSuggestPrompt}
+            size="sm"
             className="flex items-center gap-2"
             data-testid="button-suggest-prompt"
             title="Добавьте меня в друзья на LinkedIn и пришлите ваш вариант"

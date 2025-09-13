@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 
 const STAGES = [
   { value: "all", label: "Все этапы" },
-  { value: "discovery", label: "Discovery" },
+  { value: "initiation", label: "Инициация" },
   { value: "planning", label: "Планирование" },
   { value: "execution", label: "Выполнение" },
   { value: "monitoring", label: "Мониторинг" },

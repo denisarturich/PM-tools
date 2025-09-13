@@ -8,7 +8,7 @@ export default function PromptModalExample() {
   const mockPrompt = {
     title: "Анализ заинтересованных сторон",
     summary: "Системный подход к выявлению и анализу всех заинтересованных сторон проекта",
-    stage: "discovery",
+    stage: "initiation",
     tags: ["анализ", "стейкхолдеры", "планирование"],
     fullText: `Проведите анализ заинтересованных сторон проекта:
 

@@ -33,7 +33,7 @@ const MOCK_PROMPTS = [
    - Потенциальные риски
    - Стратегию взаимодействия
    - Частоту коммуникаций`,
-    stage: "discovery",
+    stage: "initiation",
     tags: ["анализ", "стейкхолдеры", "планирование"],
     createdAt: new Date(),
     updatedAt: new Date()
