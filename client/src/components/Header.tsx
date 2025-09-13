@@ -19,9 +19,8 @@ export default function Header({ onSuggestPrompt }: HeaderProps) {
   };
 
   return (
-    <header className="border-b bg-card">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
+    <header className="px-4 py-6 border-b bg-card">
+      <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col">
             <h1 className="text-lg font-semibold text-foreground">
               Справочник промптов для менеджеров проектов
@@ -45,7 +44,6 @@ export default function Header({ onSuggestPrompt }: HeaderProps) {
             )}
             Предложить промпт
           </Button>
-        </div>
       </div>
     </header>
   );
