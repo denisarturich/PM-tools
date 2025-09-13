@@ -1,0 +1,111 @@
+Цель: скроллить только область с fullText, а не весь модал.
+
+Как исправить (ключевые принципы):
+
+На корневом контейнере модала сделать layout flex/grid и убрать вертикальный скролл (т.е. overflow-hidden).
+
+Внутри разметить три зоны: Header (auto), Body (1fr), Footer (auto).
+
+Скролл (overflow-y-auto) дать только Body. Обязательно min-h-0 (для flex/grid-детей, иначе scroll не заработает).
+
+Для длинных строк в <pre>: whitespace-pre-wrap break-words.
+
+iOS: на Body добавить -webkit-overflow-scrolling: touch.
+
+Фон страницы при открытом модале — залочить (body-lock), но это уже отдельная задача.
+
+Вариант A (shadcn/ui — Radix Dialog)
+// PromptModal.tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+type Props = {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  title: string;
+  summary: string;
+  fullText: string;
+};
+
+export default function PromptModal({
+  open,
+  onOpenChange,
+  title,
+  summary,
+  fullText,
+}: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* ВАЖНО: убираем общий скролл, строим трёхзонный layout */}
+      <DialogContent className="p-0 overflow-hidden sm:max-w-3xl">
+        <div className="flex max-h-[85vh] flex-col">
+          {/* Header — не скроллится */}
+          <div className="px-6 pt-6 pb-4 border-b">
+            <DialogHeader className="space-y-2">
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{summary}</DialogDescription>
+            </DialogHeader>
+          </div>
+
+          {/* Body — СКРОЛЛИМ ТОЛЬКО ЭТО */}
+          <div
+            className="min-h-0 flex-1 overflow-y-auto px-6 py-4"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <pre className="whitespace-pre-wrap break-words text-sm leading-6">
+              {fullText}
+            </pre>
+          </div>
+
+          {/* Footer — не скроллится (если нужен) */}
+          <div className="px-6 py-4 border-t flex items-center justify-end gap-2">
+            {/* кнопки действий, копировать и т.п. */}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+Частая ошибка: ставить overflow-y-auto на DialogContent. Нужно наоборот — overflow-hidden на DialogContent, а скролл перенести на внутренний Body с min-h-0.
+
+Вариант B (Tailwind без Radix)
+export default function PromptModal({ open, onClose, title, summary, fullText }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-x-4 top-8 bottom-8 md:inset-x-auto md:mx-auto md:w-[720px]">
+        <div className="bg-white rounded-2xl shadow-xl h-full overflow-hidden">
+          {/* grid: header / body / footer */}
+          <div className="grid h-full grid-rows-[auto,1fr,auto]">
+            <div className="px-6 pt-6 pb-4 border-b">
+              <h2 className="text-xl font-semibold">{title}</h2>
+              <p className="text-sm text-gray-600">{summary}</p>
+            </div>
+
+            {/* СКРОЛЛЬНАЯ ОБЛАСТЬ */}
+            <div
+              className="min-h-0 overflow-y-auto px-6 py-4"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              <pre className="whitespace-pre-wrap break-words text-sm leading-6">
+                {fullText}
+              </pre>
+            </div>
+
+            <div className="px-6 py-4 border-t flex justify-end">
+              <button onClick={onClose} className="btn">Закрыть</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

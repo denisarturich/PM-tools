@@ -87,44 +87,53 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="max-h-[85vh] overflow-y-auto overscroll-contain max-w-4xl"
-        style={{ WebkitOverflowScrolling: "touch" }}
-        data-testid="modal-prompt"
-      >
-        <DialogHeader className="pb-4">
-          <div className="pr-10">
-            <DialogTitle className="text-xl font-semibold">
-              {prompt.title}
-            </DialogTitle>
-            <DialogDescription className="text-base mt-2">
-              {prompt.summary}
-            </DialogDescription>
+      {/* ВАЖНО: убираем общий скролл, строим трёхзонный layout */}
+      <DialogContent className="p-0 overflow-hidden sm:max-w-4xl" data-testid="modal-prompt">
+        <div className="flex max-h-[85vh] flex-col">
+          {/* Header — не скроллится */}
+          <div className="px-6 pt-6 pb-4 border-b">
+            <DialogHeader className="space-y-2">
+              <div className="pr-10">
+                <DialogTitle className="text-xl font-semibold">
+                  {prompt.title}
+                </DialogTitle>
+                <DialogDescription className="text-base mt-2">
+                  {prompt.summary}
+                </DialogDescription>
+              </div>
+              <Badge className="bg-primary/10 text-primary w-fit">
+                {STAGE_LABELS[prompt.stage] || prompt.stage}
+              </Badge>
+            </DialogHeader>
           </div>
-          <Badge className="bg-primary/10 text-primary w-fit mt-3">
-            {STAGE_LABELS[prompt.stage] || prompt.stage}
-          </Badge>
-        </DialogHeader>
 
-        <div className="relative">
-          <div className="bg-muted/50 rounded-md p-4 min-h-[200px]">
-            <pre className="font-mono text-sm whitespace-pre-wrap break-words leading-relaxed max-w-full pr-16">
-              {prompt.fullText}
-            </pre>
-          </div>
-          <Button
-            onClick={handleCopy}
-            className="absolute top-2 right-2 flex items-center gap-2 z-10"
-            size="sm"
-            data-testid="button-copy-modal"
+          {/* Body — СКРОЛЛИМ ТОЛЬКО ЭТО */}
+          <div
+            className="min-h-0 flex-1 overflow-y-auto px-6 py-4 relative"
+            style={{ WebkitOverflowScrolling: "touch" }}
           >
-            <Copy className="h-3 w-3" />
-            Скопировать
-          </Button>
-        </div>
+            <div className="bg-muted/50 rounded-md p-4 min-h-[200px]">
+              <pre className="font-mono text-sm whitespace-pre-wrap break-words leading-relaxed max-w-full pr-16">
+                {prompt.fullText}
+              </pre>
+            </div>
+            <Button
+              onClick={handleCopy}
+              className="absolute top-6 right-8 flex items-center gap-2 z-10"
+              size="sm"
+              data-testid="button-copy-modal"
+            >
+              <Copy className="h-3 w-3" />
+              Скопировать
+            </Button>
+          </div>
 
-        <div className="text-xs text-muted-foreground text-center mt-4">
-          Нажмите Esc для закрытия или Ctrl+C для копирования
+          {/* Footer — не скроллится */}
+          <div className="px-6 py-4 border-t">
+            <div className="text-xs text-muted-foreground text-center">
+              Нажмите Esc для закрытия или Ctrl+C для копирования
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
