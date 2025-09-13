@@ -77,30 +77,26 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" data-testid="modal-prompt">
-        <DialogHeader className="flex-shrink-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <DialogTitle className="text-xl font-semibold mb-2">
-                {prompt.title}
-              </DialogTitle>
-              <DialogDescription className="text-base">
-                {prompt.summary}
-              </DialogDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge className="bg-primary/10 text-primary">
-                {STAGE_LABELS[prompt.stage] || prompt.stage}
-              </Badge>
-            </div>
-          </div>
+        <DialogHeader className="flex-shrink-0 pr-8">
+          <DialogTitle className="text-xl font-semibold mb-2">
+            {prompt.title}
+          </DialogTitle>
+          <DialogDescription className="text-base mb-3">
+            {prompt.summary}
+          </DialogDescription>
+          <Badge className="bg-primary/10 text-primary w-fit">
+            {STAGE_LABELS[prompt.stage] || prompt.stage}
+          </Badge>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0">
           <div className="relative h-full">
-            <div className="h-full overflow-y-auto bg-muted/50 rounded-md">
-              <pre className="font-mono text-sm p-4 whitespace-pre-wrap leading-relaxed min-h-full">
-                {prompt.fullText}
-              </pre>
+            <div className="h-full bg-muted/50 rounded-md overflow-hidden">
+              <div className="h-full overflow-y-auto">
+                <pre className="font-mono text-sm p-4 pr-20 whitespace-pre-wrap leading-relaxed">
+                  {prompt.fullText}
+                </pre>
+              </div>
             </div>
             <Button
               onClick={handleCopy}
