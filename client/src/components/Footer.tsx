@@ -1,5 +1,5 @@
 import { Linkedin } from "lucide-react";
-import authorPhoto from "@assets/author-photo.png";
+import authorPhoto from "@assets/author-photo-hq.png";
 
 export default function Footer() {
   return (
@@ -10,6 +10,9 @@ export default function Footer() {
             src={authorPhoto} 
             alt="Денис Николаев" 
             className="w-full h-full object-cover"
+            width="96"
+            height="96"
+            loading="lazy"
           />
         </div>
         <p className="text-center text-sm text-muted-foreground">
