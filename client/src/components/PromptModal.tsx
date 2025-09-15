@@ -4,17 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { type Prompt } from "@shared/schema";
 
 interface PromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  prompt: {
-    title: string;
-    summary: string;
-    fullText: string;
-    stage: string;
-    tags: string[];
-  } | null;
+  prompt: Prompt | null;
 }
 
 const STAGE_LABELS: Record<string, string> = {

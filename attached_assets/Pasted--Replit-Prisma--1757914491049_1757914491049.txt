@@ -1,0 +1,169 @@
+Промпт для Replit: «Перенеси статичные промпты в БД (Prisma)»
+
+В проекте сейчас есть статичные данные промптов (название, короткое описание, этап, полный текст). Переведи приложение на работу с БД и перенеси туда эти данные.
+
+Требования и шаги:
+
+БД и Prisma
+
+Установи Prisma и инициализируй его.
+
+Если в .env есть DATABASE_URL, используй PostgreSQL. Если нет — используй SQLite (файл data.sqlite в корне репозитория).
+
+Создай Prisma-схему с моделью Prompt:
+
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = env("DATABASE_PROVIDER") // "postgresql" или "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Если SQLite, в .env:
+// DATABASE_PROVIDER="sqlite"
+// DATABASE_URL="file:./data.sqlite"
+
+model Prompt {
+  id        String   @id @default(cuid())
+  title     String   @db.VarChar(200)
+  slug      String   @unique @db.VarChar(200)
+  summary   String   @db.VarChar(500)
+  stage     String   @db.VarChar(100) // например: Инициация, Планирование, Выполнение, Мониторинг, Завершение
+  fullText  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+Миграции и сиды
+
+Создай миграцию (prisma migrate dev -n init).
+
+Вынеси текущие статичные промпты из кода в prisma/seed.ts или prisma/seeds/prompts.json и сделай сидирование БД:
+
+Найди массив/источник статичных промптов в проекте (в компонентах/файлах данных).
+
+Для каждого элемента заполни: title, summary, stage, fullText.
+
+Сгенерируй slug из title (латиницей, kebab-case, уникальный: добавляй суффикс при коллизии).
+
+Пример seed.ts:
+
+// prisma/seed.ts
+import { PrismaClient } from "@prisma/client";
+import slugify from "slugify";
+import data from "./seeds/prompts.json" assert { type: "json" };
+
+const prisma = new PrismaClient();
+
+function makeSlug(title: string) {
+  return slugify(title, { lower: true, strict: true, locale: "ru" }).slice(0, 200);
+}
+
+async function main() {
+  for (const p of data) {
+    const base = makeSlug(p.title);
+    let slug = base;
+    let i = 1;
+    while (await prisma.prompt.findUnique({ where: { slug } })) {
+      slug = `${base}-${i++}`;
+    }
+    await prisma.prompt.upsert({
+      where: { slug },
+      update: {},
+      create: {
+        title: p.title,
+        summary: p.summary,
+        stage: p.stage,
+        fullText: p.fullText,
+        slug,
+      },
+    });
+  }
+}
+main().finally(() => prisma.$disconnect());
+
+
+Добавь скрипты в package.json:
+
+{
+  "scripts": {
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
+  }
+}
+
+
+(если seed на JS — просто node prisma/seed.js)
+
+API поверх БД (Express)
+Замени использование статичных данных на Prisma-клиент:
+
+GET /api/prompts?q=&stage=&page=&pageSize= — чтение из БД с фильтрами (поиск по title/summary/fullText через contains, регистр нечувствителен).
+
+GET /api/prompts/:slug — получение одного промпта.
+
+POST /api/admin/prompts, PUT /api/admin/prompts/:id, DELETE /api/admin/prompts/:id — CRUD (остается Basic Auth).
+
+Фронтенд
+
+Убери импорт/использование статичных массивов; теперь данные приходят из API.
+
+Проверить, что список, модальное окно и кнопка «Скопировать» работают с полем fullText из ответа сервера.
+
+ENV и команды
+
+В .env добавь:
+
+# Вариант SQLite (по умолчанию)
+DATABASE_PROVIDER="sqlite"
+DATABASE_URL="file:./data.sqlite"
+
+# Вариант Postgres (если доступен в Replit)
+# DATABASE_PROVIDER="postgresql"
+# DATABASE_URL="postgresql://user:pass@host:port/dbname?schema=public"
+
+
+Последовательность запуска:
+
+npm run prisma:migrate
+
+npm run prisma:seed
+
+npm run start
+
+Перенос существующих данных
+
+Автоматически извлеки все существующие статичные промпты (там, где сейчас отрисовываются карточки) и положи их в prisma/seeds/prompts.json формата:
+
+[
+  {
+    "title": "Анализ заинтересованных сторон",
+    "summary": "Системный подход к выявлению и анализу стейкхолдеров",
+    "stage": "Инициация",
+    "fullText": "…полный текст промпта…"
+  }
+  // …
+]
+
+
+Убедись, что после сидирования UI показывает данные из БД, а не из прежних статичных источников.
+
+Acceptance criteria:
+
+Приложение стартует без ошибок; список карточек приходит из БД.
+
+В БД присутствуют все прежние статичные промпты.
+
+Поиск и фильтр по stage работают на уровне БД.
+
+GET /api/prompts/:slug возвращает корректный объект с fullText.
+
+CRUD-роуты админки работают (созданный элемент появляется в списке).
+
+Репозитория больше не содержит источника правды в виде статичных массивов с промптами (они заменены на БД + сид).
+
+Если удобнее сразу только SQLite, просто не указывай ветку про Postgres и оставь DATABASE_PROVIDER="sqlite" / DATABASE_URL="file:./data.sqlite".
