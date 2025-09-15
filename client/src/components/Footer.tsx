@@ -1,5 +1,5 @@
 import { Linkedin } from "lucide-react";
-import authorPhoto from "@assets/author-photo.png";
+import authorPhoto from "@assets/author-photo.jpeg";
 
 export default function Footer() {
   return (
