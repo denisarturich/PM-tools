@@ -19,7 +19,7 @@ const STAGE_LABELS: Record<string, string> = {
   planning: "Planning", 
   execution: "Execution",
   monitoring: "Monitoring",
-  closing: "Closing"
+  closure: "Closing"
 };
 
 const STAGE_COLORS: Record<string, string> = {
@@ -27,7 +27,7 @@ const STAGE_COLORS: Record<string, string> = {
   planning: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   execution: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", 
   monitoring: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  closing: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  closure: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
 };
 
 export default function PromptCard({

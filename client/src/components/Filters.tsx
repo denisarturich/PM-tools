@@ -8,7 +8,7 @@ const STAGES = [
   { value: "planning", label: "Planning" },
   { value: "execution", label: "Execution" },
   { value: "monitoring", label: "Monitoring" },
-  { value: "closing", label: "Closing" }
+  { value: "closure", label: "Closing" }
 ];
 
 interface FiltersProps {

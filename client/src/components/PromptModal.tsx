@@ -17,7 +17,7 @@ const STAGE_LABELS: Record<string, string> = {
   planning: "Planning",
   execution: "Execution", 
   monitoring: "Monitoring",
-  closing: "Closing"
+  closure: "Closing"
 };
 
 export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProps) {
