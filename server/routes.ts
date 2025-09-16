@@ -88,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/admin/prompts - создание нового промпта
   app.post("/api/admin/prompts", async (req, res) => {
     try {
-      const { title, summary, stage, fullText } = req.body;
+      const { title, summary, stage, fullText, authorName, authorUrl } = req.body;
 
       if (!title || !summary || !stage || !fullText) {
         return res.status(400).json({ 
@@ -121,6 +121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           summary,
           stage,
           fullText,
+          ...(authorName && { authorName }),
+          ...(authorUrl && { authorUrl }),
         },
       });
 
@@ -135,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/prompts/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, summary, stage, fullText } = req.body;
+      const { title, summary, stage, fullText, authorName, authorUrl } = req.body;
 
       const existingPrompt = await prisma.prompt.findUnique({
         where: { id },
@@ -177,6 +179,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...(summary && { summary }),
           ...(stage && { stage }),
           ...(fullText && { fullText }),
+          ...(authorName !== undefined && { authorName }),
+          ...(authorUrl !== undefined && { authorUrl }),
         },
       });
 
