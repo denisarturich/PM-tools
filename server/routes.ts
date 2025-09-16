@@ -31,15 +31,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         where.stage = stage;
       }
 
-      const [prompts, total] = await Promise.all([
+      // Получаем промпты без сортировки по времени (будем сортировать сами)
+      const [promptsData, total] = await Promise.all([
         prisma.prompt.findMany({
           where,
           skip,
           take,
-          orderBy: { createdAt: "desc" },
+          // Убираем orderBy - будем сортировать по этапам
         }),
         prisma.prompt.count({ where }),
       ]);
+
+      // Получаем настроенный порядок этапов
+      const stageWeights = await getStageOrder();
+      
+      // Сортируем промпты по этапам, затем по дате создания
+      const prompts = sortPromptsByStage(promptsData, stageWeights);
 
       res.json({
         prompts,

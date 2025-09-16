@@ -48,11 +48,11 @@ export function getStageWeight(stage: string, stageWeights: Map<string, number>)
  * @returns Отсортированный список промптов
  */
 export function sortPromptsByStage(
-  prompts: Prompt[],
+  prompts: any[],
   stageWeights: Map<string, number>,
-  secondarySort: (a: Prompt, b: Prompt) => number = (a, b) => 
+  secondarySort: (a: any, b: any) => number = (a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-): Prompt[] {
+): any[] {
   return prompts.sort((a, b) => {
     // Сначала сортируем по этапам
     const stageWeightA = getStageWeight(a.stage, stageWeights);
