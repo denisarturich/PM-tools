@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import prisma from "./prisma";
+import { getStageOrder, sortPromptsByStage } from "./stageSort";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Prompts API routes
