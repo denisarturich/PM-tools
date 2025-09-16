@@ -7,8 +7,8 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({ 
-  title = "Промптов не найдено",
-  description = "Попробуйте изменить запрос или фильтры.",
+  title = "No prompts found",
+  description = "Try changing your search or filters.",
   icon
 }: EmptyStateProps) {
   return (

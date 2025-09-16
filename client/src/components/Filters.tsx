@@ -3,12 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
 const STAGES = [
-  { value: "all", label: "Все этапы" },
-  { value: "initiation", label: "Инициация" },
-  { value: "planning", label: "Планирование" },
-  { value: "execution", label: "Выполнение" },
-  { value: "monitoring", label: "Мониторинг" },
-  { value: "closing", label: "Закрытие" }
+  { value: "all", label: "All stages" },
+  { value: "initiation", label: "Initiation" },
+  { value: "planning", label: "Planning" },
+  { value: "execution", label: "Execution" },
+  { value: "monitoring", label: "Monitoring" },
+  { value: "closing", label: "Closing" }
 ];
 
 interface FiltersProps {
@@ -32,7 +32,7 @@ export default function Filters({
       <div className="min-w-48">
         <Select value={selectedStage} onValueChange={onStageChange}>
           <SelectTrigger data-testid="select-stage">
-            <SelectValue placeholder="Выберите этап" />
+            <SelectValue placeholder="Select stage" />
           </SelectTrigger>
           <SelectContent>
             {STAGES.map((stage) => (
@@ -50,7 +50,7 @@ export default function Filters({
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           data-testid="button-clear-filters"
         >
-          Показать все
+          Show all
         </button>
       )}
     </div>

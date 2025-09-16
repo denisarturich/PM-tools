@@ -12,7 +12,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="h-9 w-9"
       data-testid="button-theme-toggle"
-      title={theme === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'}
+      title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
     >
       {theme === 'dark' ? (
         <Sun className="h-4 w-4" />

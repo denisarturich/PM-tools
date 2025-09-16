@@ -11,7 +11,7 @@ interface SearchBarProps {
 
 export default function SearchBar({ 
   onSearch, 
-  placeholder = "Поиск промптов...", 
+  placeholder = "Search prompts...", 
   debounceMs = 300 
 }: SearchBarProps) {
   const [query, setQuery] = useState("");

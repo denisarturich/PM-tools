@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center shadow-md overflow-hidden">
           <img 
             src={authorPhoto} 
-            alt="Денис Николаев" 
+            alt="Denis Nikolaev" 
             className="w-full h-full object-cover"
             width="96"
             height="96"
@@ -16,8 +16,8 @@ export default function Footer() {
           />
         </div>
         <p className="text-center text-sm text-muted-foreground">
-          Сделано с любовью для менеджеров проектов<br />
-          Автор: <span className="font-medium text-foreground">Денис Николаев</span>
+          Made with love for project managers<br />
+          Author: <span className="font-medium text-foreground">Denis Nikolaev</span>
         </p>
         <a
           href="https://www.linkedin.com/in/nikden/"
