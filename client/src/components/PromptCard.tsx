@@ -15,11 +15,11 @@ interface PromptCardProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  initiation: "Инициация",
-  planning: "Планирование", 
-  execution: "Выполнение",
-  monitoring: "Мониторинг",
-  closing: "Закрытие"
+  initiation: "Initiation",
+  planning: "Planning", 
+  execution: "Execution",
+  monitoring: "Monitoring",
+  closing: "Closing"
 };
 
 const STAGE_COLORS: Record<string, string> = {
@@ -45,8 +45,8 @@ export default function PromptCard({
     try {
       await navigator.clipboard.writeText(fullText);
       toast({
-        title: "Успешно!",
-        description: "Промпт скопирован в буфер обмена",
+        title: "Success!",
+        description: "Prompt copied to clipboard",
       });
     } catch (error) {
       // Fallback for older browsers
@@ -58,8 +58,8 @@ export default function PromptCard({
       document.body.removeChild(textArea);
       
       toast({
-        title: "Успешно!",
-        description: "Промпт скопирован в буфер обмена",
+        title: "Success!",
+        description: "Prompt copied to clipboard",
       });
     }
   };
@@ -95,7 +95,7 @@ export default function PromptCard({
           data-testid={`button-copy-${id}`}
         >
           <Copy className="h-3 w-3" />
-          Скопировать
+          Copy
         </Button>
         
         <Button 
@@ -105,7 +105,7 @@ export default function PromptCard({
           data-testid={`button-expand-${id}`}
         >
           <Expand className="h-3 w-3" />
-          Развернуть
+          Expand
         </Button>
       </CardFooter>
     </Card>
