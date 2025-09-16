@@ -70,6 +70,8 @@ export const promptSchema = z.object({
   summary: z.string(),
   stage: z.nativeEnum(ProjectStage),
   fullText: z.string(),
+  authorName: z.string().optional().nullable(),
+  authorUrl: z.string().optional().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
