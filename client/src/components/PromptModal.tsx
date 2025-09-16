@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { type Prompt } from "@shared/schema";
+import { type Prompt, STAGE_DISPLAY_NAMES, ProjectStage } from "@shared/schema";
 
 interface PromptModalProps {
   isOpen: boolean;
@@ -12,13 +12,6 @@ interface PromptModalProps {
   prompt: Prompt | null;
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  initiation: "Initiation",
-  planning: "Planning",
-  execution: "Execution", 
-  monitoring: "Monitoring",
-  closure: "Closing"
-};
 
 export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProps) {
   const { toast } = useToast();
@@ -98,7 +91,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
               </div>
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <Badge className="bg-primary/10 text-primary w-fit">
-                  {STAGE_LABELS[prompt.stage] || prompt.stage}
+                  {STAGE_DISPLAY_NAMES[prompt.stage as ProjectStage] || prompt.stage}
                 </Badge>
                 {/* Блок автора на одном уровне с этапом */}
                 {prompt.authorName?.trim() && (

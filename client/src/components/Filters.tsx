@@ -1,15 +1,25 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
-const STAGES = [
-  { value: "all", label: "All stages" },
-  { value: "initiation", label: "Initiation" },
-  { value: "planning", label: "Planning" },
-  { value: "execution", label: "Execution" },
-  { value: "monitoring", label: "Monitoring" },
-  { value: "closure", label: "Closing" }
-];
+interface Stage {
+  value: string;
+  label: string;
+}
+
+interface StagesResponse {
+  stages: Stage[];
+}
+
+// Функция для получения стадий из API
+const fetchStages = async (): Promise<StagesResponse> => {
+  const response = await fetch("/api/stages");
+  if (!response.ok) {
+    throw new Error("Failed to fetch stages");
+  }
+  return response.json();
+};
 
 interface FiltersProps {
   selectedStage: string;
@@ -27,6 +37,15 @@ export default function Filters({
 }: FiltersProps) {
   const hasActiveFilters = selectedStage !== "all";
 
+  // Получаем стадии из API
+  const { data: stagesData, isLoading: stagesLoading } = useQuery({
+    queryKey: ["stages"],
+    queryFn: fetchStages,
+    staleTime: 10 * 60 * 1000, // 10 минут
+  });
+
+  const stages = stagesData?.stages || [];
+
   return (
     <div className="flex flex-wrap gap-4 items-center">
       <div className="min-w-48">
@@ -35,11 +54,15 @@ export default function Filters({
             <SelectValue placeholder="Select stage" />
           </SelectTrigger>
           <SelectContent>
-            {STAGES.map((stage) => (
-              <SelectItem key={stage.value} value={stage.value}>
-                {stage.label}
-              </SelectItem>
-            ))}
+            {stagesLoading ? (
+              <SelectItem value="all">Loading stages...</SelectItem>
+            ) : (
+              stages.map((stage) => (
+                <SelectItem key={stage.value} value={stage.value}>
+                  {stage.label}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>

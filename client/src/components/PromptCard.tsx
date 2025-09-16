@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Expand } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { STAGE_DISPLAY_NAMES, ProjectStage } from "@shared/schema";
 
 interface PromptCardProps {
   id: string;
@@ -14,13 +15,6 @@ interface PromptCardProps {
   onExpand: () => void;
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  initiation: "Initiation",
-  planning: "Planning", 
-  execution: "Execution",
-  monitoring: "Monitoring",
-  closure: "Closing"
-};
 
 const STAGE_COLORS: Record<string, string> = {
   initiation: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -75,7 +69,7 @@ export default function PromptCard({
             className={`shrink-0 ${STAGE_COLORS[stage] || 'bg-gray-100 text-gray-800'}`}
             data-testid={`badge-stage-${stage}`}
           >
-            {STAGE_LABELS[stage] || stage}
+            {STAGE_DISPLAY_NAMES[stage as ProjectStage] || stage}
           </Badge>
         </div>
       </CardHeader>

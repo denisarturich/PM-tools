@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import prisma from "./prisma";
 import { getStageOrder, sortPromptsByStage } from "./stageSort";
+import { STAGE_DISPLAY_NAMES, ProjectStage } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Prompts API routes
@@ -60,6 +61,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching prompts:", error);
       res.status(500).json({ error: "Failed to fetch prompts" });
+    }
+  });
+
+  // GET /api/stages - получение списка стадий с отображаемыми названиями
+  app.get("/api/stages", async (req, res) => {
+    try {
+      // Получаем уникальные стадии из базы данных
+      const stagesData = await prisma.prompt.findMany({
+        select: {
+          stage: true,
+        },
+        distinct: ['stage'],
+      });
+
+      // Преобразуем в нужный формат с отображаемыми названиями
+      const stages = [
+        { value: "all", label: "All stages" },
+        ...stagesData.map(({ stage }) => ({
+          value: stage,
+          label: STAGE_DISPLAY_NAMES[stage as ProjectStage] || stage,
+        })).sort((a, b) => {
+          // Сортируем по порядку из enum
+          const order = [ProjectStage.INITIATION, ProjectStage.PLANNING, ProjectStage.EXECUTION, ProjectStage.MONITORING, ProjectStage.CLOSURE];
+          const aIndex = order.indexOf(a.value as ProjectStage);
+          const bIndex = order.indexOf(b.value as ProjectStage);
+          return aIndex - bIndex;
+        }),
+      ];
+
+      res.json({ stages });
+    } catch (error) {
+      console.error("Error fetching stages:", error);
+      res.status(500).json({ error: "Failed to fetch stages" });
     }
   });
 
