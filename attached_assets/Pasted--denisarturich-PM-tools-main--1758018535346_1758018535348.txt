@@ -1,0 +1,79 @@
+Проанализируй репо denisarturich/PM-tools (ветка main). Цель — чтобы сборка и прод-запуск работали одинаково в Replit и на VPS с PM2.
+
+Контекст проблем (по логам сервера):
+
+npm run build падает на vite: not found.
+
+PM2 ругается на ecosystem.config.js из-за "type": "module" в package.json.
+
+Что нужно сделать:
+
+Починить сборку
+
+Открой package.json. Убедись, что:
+
+В devDependencies есть vite и esbuild. Если vite отсутствует — добавь актуальную версию.
+
+Скрипт "build" собирает и клиент (через vite build), и сервер (через esbuild):
+
+"build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"
+
+
+Если esbuild отсутствует — добавь в devDependencies.
+
+Обнови package-lock.json под эти изменения.
+
+Проверь tsconfig.json: должен быть совместим с ESM ("module": "ESNext" или "NodeNext"), rootDir/outDir не мешают esbuild-у.
+
+PM2 + ESM
+
+Переименуй ecosystem.config.js в ecosystem.config.cjs.
+
+Внутри оставь CommonJS-экспорт:
+
+// ecosystem.config.cjs
+module.exports = {
+  apps: [
+    {
+      name: "pm-tools",
+      script: "dist/index.js",
+      instances: "max",
+      exec_mode: "cluster",
+      env: { NODE_ENV: "production", PORT: "3000" }
+    }
+  ]
+}
+
+
+Добавь в README раздел “Deploy (PM2)” с командами:
+
+npm ci
+npx prisma generate
+npx prisma migrate deploy
+npm run build
+pm2 start ecosystem.config.cjs --env production
+
+
+Проверки
+
+Выполни npm ci && npm run build — убедись, что сборка проходит.
+
+Статический анализ: tsc --noEmit (если есть конфиг) и eslint (если подключён).
+
+Локально запусти сервер: node dist/index.js и проверь базовые маршруты (если есть healthcheck).
+
+Если правок несколько — оформи их в один PR с понятным описанием “Fix build (add Vite), PM2 ESM config -> CJS”.
+
+Опционально (если видишь неочевидные ошибки)
+
+Проверь импорт путей в server/index.ts для ESM (использование fileURLToPath(import.meta.url) вместо __dirname, и т.п.).
+
+Убедись, что vite.config.ts действительно нужен (если клиент не используется — предложи вариант "build:server" без Vite).
+
+Ожидаемый результат:
+
+После установки зависимостей npm run build успешно генерит dist/index.js.
+
+PM2 стартует конфигом ecosystem.config.cjs без ошибок.
+
+В PR — список внесённых изменений и краткое объяснение, почему билд ломался.
