@@ -1,0 +1,30 @@
+{
+  "name": "Справочник промптов для менеджеров проектов",
+  "short_name": "PM Prompts",
+  "description": "Готовые шаблоны промптов для любых этапов проекта: от discovery до закрытия",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
+  "lang": "ru",
+  "orientation": "portrait-primary"
+}
