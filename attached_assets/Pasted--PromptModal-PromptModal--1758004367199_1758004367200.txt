@@ -1,0 +1,91 @@
+Задача: Добавить автора в модальное окно PromptModal
+
+Цель
+В модальном окне PromptModal добавить отображение имени автора и ссылки на его страницу. Имя должно быть в правом верхнем углу модального окна. Если поле не заполнено в БД — ничего не показывать.
+
+Backend
+
+В Prisma-схеме (prisma/schema.prisma) расширить модель Prompt:
+
+model Prompt {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  stage       String
+  content     String
+  authorName  String?   // новое поле
+  authorUrl   String?   // новое поле
+}
+
+
+Сделать миграцию:
+
+npx prisma migrate dev --name add_author_fields
+
+
+В API-роутах (pages/api/prompts.ts или src/pages/api/prompts.ts) добавить возврат этих полей.
+
+Frontend
+
+В интерфейсе Prompt (types/prompt.ts) добавить:
+
+export interface Prompt {
+  id: number
+  title: string
+  description: string
+  stage: string
+  content: string
+  authorName?: string
+  authorUrl?: string
+}
+
+
+В компоненте PromptModal.tsx:
+
+принять authorName и authorUrl из пропсов (через объект prompt)
+
+отрисовать блок автора условно:
+
+{prompt.authorName?.trim() && (
+  <div className="absolute top-4 right-4 text-sm text-gray-600">
+    {prompt.authorUrl?.trim() ? (
+      <a
+        href={prompt.authorUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Страница автора"
+        title="Открыть страницу автора"
+        className="hover:underline"
+      >
+        {prompt.authorName}
+      </a>
+    ) : (
+      <span>{prompt.authorName}</span>
+    )}
+  </div>
+)}
+
+
+Проверить, чтобы блок не перекрывал кнопку закрытия (X). Если пересекается — можно опустить чуть ниже right-4 top-10.
+
+Стили (Tailwind)
+
+Основной блок: absolute top-4 right-4 text-sm text-gray-600
+
+Ссылка: hover:underline
+
+На мобильных: Tailwind сам перестроит, но при необходимости можно добавить
+
+className="absolute top-4 right-4 text-sm text-gray-600 max-w-[60%] truncate sm:static sm:block sm:text-right"
+
+Acceptance Criteria
+
+ Если authorName пустое → блока нет.
+
+ Если есть имя, но нет ссылки → просто текст.
+
+ Если есть и имя, и ссылка → кликабельная ссылка, новая вкладка.
+
+ Блок стоит в правом верхнем углу модалки, не перекрывает close.
+
+ На мобильных отображается аккуратно (не съезжает).
