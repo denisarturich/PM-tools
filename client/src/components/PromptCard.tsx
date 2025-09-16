@@ -65,7 +65,7 @@ export default function PromptCard({
   };
 
   return (
-    <Card className="hover-elevate transition-all duration-200" data-testid={`card-prompt-${id}`}>
+    <Card className="hover-elevate transition-all duration-200 flex flex-col min-h-[200px]" data-testid={`card-prompt-${id}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-lg leading-tight text-card-foreground">
@@ -80,13 +80,13 @@ export default function PromptCard({
         </div>
       </CardHeader>
 
-      <CardContent className="pb-4">
+      <CardContent className="pb-4 flex-grow">
         <p className="text-muted-foreground leading-relaxed text-sm">
           {summary}
         </p>
       </CardContent>
 
-      <CardFooter className="pt-0 flex gap-2">
+      <CardFooter className="pt-0 flex gap-2 mt-auto">
         <Button 
           size="sm" 
           variant="outline"
