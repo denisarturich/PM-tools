@@ -5,7 +5,7 @@ export default function FiltersExample() {
   const [selectedStage, setSelectedStage] = useState("all");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
-  const availableTags = ["анализ", "планирование", "риски", "коммуникации", "ретроспектива"];
+  const availableTags = ["analysis", "planning", "risks", "communications", "retrospective"];
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags(prev => 

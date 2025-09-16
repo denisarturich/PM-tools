@@ -5,7 +5,7 @@ export default function ThemeToggleExample() {
   return (
     <ThemeProvider>
       <div className="p-4 flex items-center gap-4">
-        <span className="text-sm">Переключить тему:</span>
+        <span className="text-sm">Switch theme:</span>
         <ThemeToggle />
       </div>
     </ThemeProvider>

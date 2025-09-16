@@ -78,13 +78,13 @@ export default function Home() {
         {isLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Загрузка промптов...</p>
+            <p className="mt-4 text-muted-foreground">Loading prompts...</p>
           </div>
         ) : error ? (
           <div className="text-center py-8">
-            <p className="text-destructive">Ошибка загрузки промптов</p>
+            <p className="text-destructive">Error loading prompts</p>
             <p className="text-sm text-muted-foreground mt-2">
-              {error instanceof Error ? error.message : 'Неизвестная ошибка'}
+              {error instanceof Error ? error.message : 'Unknown error'}
             </p>
           </div>
         ) : filteredPrompts.length === 0 ? (

@@ -21,13 +21,13 @@ export const DEFAULT_STAGE_WEIGHTS: Record<ProjectStage, number> = {
   [ProjectStage.CLOSURE]: 50,
 };
 
-// Stage display names in Russian
+// Stage display names
 export const STAGE_DISPLAY_NAMES: Record<ProjectStage, string> = {
-  [ProjectStage.INITIATION]: "Инициация",
-  [ProjectStage.PLANNING]: "Планирование",
-  [ProjectStage.EXECUTION]: "Выполнение", 
-  [ProjectStage.MONITORING]: "Мониторинг",
-  [ProjectStage.CLOSURE]: "Закрытие",
+  [ProjectStage.INITIATION]: "Initiation",
+  [ProjectStage.PLANNING]: "Planning",
+  [ProjectStage.EXECUTION]: "Execution", 
+  [ProjectStage.MONITORING]: "Monitoring",
+  [ProjectStage.CLOSURE]: "Closing",
 };
 
 export const users = pgTable("users", {
