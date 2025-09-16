@@ -1,35 +1,39 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import path from "path";
-import fs from "fs";
+// server/index.ts
+import 'dotenv/config';
+import express, { type Request, Response, NextFunction } from 'express';
+import { registerRoutes } from './routes';
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-// Logging function (extracted from vite.ts to avoid importing it)
-function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
+// --- ESM-safe __dirname/__filename ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// --- tiny logger ---
+function log(message: string, source = 'express') {
+  const formattedTime = new Date().toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
     hour12: true,
   });
-
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
-// Production static server function (extracted from vite.ts)
+// --- static files for production ---
 function serveStatic(app: express.Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
-
-  if (!fs.existsSync(distPath)) {
+  // ожидаем, что статика лежит рядом со сборкой в dist/public
+  const distPublic = path.resolve(__dirname, 'public');
+  if (!fs.existsSync(distPublic)) {
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      `Could not find the build directory: ${distPublic}. Build the client or remove static serving.`
     );
   }
-
-  app.use(express.static(distPath));
-
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  app.use(express.static(distPublic));
+  // SPA fallback
+  app.use('*', (_req, res) => {
+    res.sendFile(path.join(distPublic, 'index.html'));
   });
 }
 
@@ -37,30 +41,28 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// access log for /api
 app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  const started = Date.now();
+  const p = req.path;
+  let captured: unknown;
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+  const origJson = res.json.bind(res);
+  (res as any).json = (body: unknown, ...args: any[]) => {
+    captured = body;
+    return origJson(body, ...args);
   };
 
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+  res.on('finish', () => {
+    if (p.startsWith('/api')) {
+      const ms = Date.now() - started;
+      let line = `${req.method} ${p} ${res.statusCode} in ${ms}ms`;
+      if (captured) {
+        const snippet = JSON.stringify(captured);
+        if (snippet.length <= 80) line += ` :: ${snippet}`;
+        else line += ` :: ${snippet.slice(0, 79)}…`;
       }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+      log(line);
     }
   });
 
@@ -68,38 +70,43 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Регистрируем API/роуты (ожидаем, что вернётся http.Server)
   const server = await registerRoutes(app);
 
+  // централизованный обработчик ошибок
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
+    const status = err?.status || err?.statusCode || 500;
+    const message = err?.message || 'Internal Server Error';
+    console.error('[error]', err);
     res.status(status).json({ message });
-    throw err;
+    // НЕ бросаем дальше, чтобы не ронять процесс в проде
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "development") {
-    // Dynamic import of Vite only in development
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
+  // Vite только в деве (динамический импорт, чтобы не тянуть его в прод)
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      const { setupVite } = await import('./vite');
+      await setupVite(app, server);
+      log('Vite dev middlewares enabled', 'server');
+    } catch (e) {
+      console.warn('[vite]', 'dev middlewares disabled:', e);
+    }
   } else {
-    // Use static file serving in production
-    serveStatic(app);
+    // продовая статика (если есть собранный фронт)
+    try {
+      serveStatic(app);
+    } catch (e) {
+      // Если фронт не нужен — это не критично: просто логируем
+      console.warn('[static]', String(e));
+    }
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  // bind под nginx (по умолчанию 127.0.0.1:3000)
+  const port = Number(process.env.PORT ?? 3000);
+  const host = process.env.HOST ?? '127.0.0.1';
+
+  server.listen(
+    { port, host, reusePort: true },
+    () => log(`serving on ${host}:${port}`)
+  );
 })();
