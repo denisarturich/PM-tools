@@ -11,14 +11,16 @@ datasource db {
 }
 
 model Prompt {
-  id        String   @id @default(cuid())
-  title     String   @db.VarChar(200)
-  slug      String   @unique @db.VarChar(200)
-  summary   String   @db.VarChar(500)
-  stage     String   @db.VarChar(100) // например: initiation, planning, execution, monitoring, closure
-  fullText  String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  title      String   @db.VarChar(200)
+  slug       String   @unique @db.VarChar(200)
+  summary    String   @db.VarChar(500)
+  stage      String   @db.VarChar(100) // например: initiation, planning, execution, monitoring, closure
+  fullText   String   @db.Text
+  authorName String?  @db.VarChar(200) // имя автора (опционально)
+  authorUrl  String?  @db.VarChar(500) // ссылка на страницу автора (опционально)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("prompts")
 }
