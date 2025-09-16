@@ -102,7 +102,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                 </Badge>
                 {/* Блок автора на одном уровне с этапом */}
                 {prompt.authorName?.trim() && (
-                  <div className="ml-auto text-sm text-gray-700 flex items-center space-x-1" data-testid="text-author">
+                  <div className="ml-auto text-sm text-muted-foreground flex items-center space-x-1" data-testid="text-author">
                     <span className="font-semibold">Author:</span>
                     {prompt.authorUrl?.trim() ? (
                       <a
@@ -111,13 +111,13 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                         rel="noopener noreferrer"
                         aria-label="Страница автора"
                         title="Открыть страницу автора"
-                        className="text-blue-600 font-medium underline hover:text-blue-800"
+                        className="hover:underline hover:text-foreground transition-colors"
                         data-testid="link-author"
                       >
                         {prompt.authorName}
                       </a>
                     ) : (
-                      <span className="text-gray-800">{prompt.authorName}</span>
+                      <span>{prompt.authorName}</span>
                     )}
                   </div>
                 )}
