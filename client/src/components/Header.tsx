@@ -57,7 +57,6 @@ export default function Header({ onSuggestPrompt }: HeaderProps) {
               rel="noopener noreferrer"
               onClick={handleSuggestPrompt}
             >
-              <LinkedinIcon className="h-4 w-4" />
               Предложить промпт
             </a>
           </Button>
