@@ -86,28 +86,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
       <DialogContent className="p-0 overflow-hidden sm:max-w-4xl" data-testid="modal-prompt">
         <div className="flex max-h-[85vh] flex-col">
           {/* Header — не скроллится */}
-          <div className="px-6 pt-6 pb-4 border-b relative">
-            {/* Блок автора в правом верхнем углу */}
-            {prompt.authorName?.trim() && (
-              <div className="absolute top-4 right-6 text-sm text-muted-foreground max-w-[50%] truncate" data-testid="text-author">
-                {prompt.authorUrl?.trim() ? (
-                  <a
-                    href={prompt.authorUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Страница автора"
-                    title="Открыть страницу автора"
-                    className="hover:underline hover:text-foreground transition-colors"
-                    data-testid="link-author"
-                  >
-                    {prompt.authorName}
-                  </a>
-                ) : (
-                  <span>{prompt.authorName}</span>
-                )}
-              </div>
-            )}
-            
+          <div className="px-6 pt-6 pb-4 border-b">
             <DialogHeader className="space-y-2">
               <div className="pr-10">
                 <DialogTitle className="text-xl font-semibold">
@@ -117,9 +96,31 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                   {prompt.summary}
                 </DialogDescription>
               </div>
-              <Badge className="bg-primary/10 text-primary w-fit">
-                {STAGE_LABELS[prompt.stage] || prompt.stage}
-              </Badge>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <Badge className="bg-primary/10 text-primary w-fit">
+                  {STAGE_LABELS[prompt.stage] || prompt.stage}
+                </Badge>
+                {/* Блок автора на одном уровне с этапом */}
+                {prompt.authorName?.trim() && (
+                  <div className="text-sm text-muted-foreground" data-testid="text-author">
+                    {prompt.authorUrl?.trim() ? (
+                      <a
+                        href={prompt.authorUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Страница автора"
+                        title="Открыть страницу автора"
+                        className="hover:underline hover:text-foreground transition-colors"
+                        data-testid="link-author"
+                      >
+                        {prompt.authorName}
+                      </a>
+                    ) : (
+                      <span>{prompt.authorName}</span>
+                    )}
+                  </div>
+                )}
+              </div>
             </DialogHeader>
           </div>
 
