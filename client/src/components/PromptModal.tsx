@@ -13,11 +13,11 @@ interface PromptModalProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  initiation: "Инициация",
-  planning: "Планирование",
-  execution: "Выполнение", 
-  monitoring: "Мониторинг",
-  closing: "Закрытие"
+  initiation: "Initiation",
+  planning: "Planning",
+  execution: "Execution", 
+  monitoring: "Monitoring",
+  closing: "Closing"
 };
 
 export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProps) {
@@ -59,8 +59,8 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
     try {
       await navigator.clipboard.writeText(prompt.fullText);
       toast({
-        title: "Успешно!",
-        description: "Промпт скопирован в буфер обмена",
+        title: "Success!",
+        description: "Prompt copied to clipboard",
       });
     } catch (error) {
       // Fallback for older browsers
@@ -72,8 +72,8 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
       document.body.removeChild(textArea);
       
       toast({
-        title: "Успешно!",
-        description: "Промпт скопирован в буфер обмена",
+        title: "Success!",
+        description: "Prompt copied to clipboard",
       });
     }
   };
@@ -109,8 +109,8 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                         href={prompt.authorUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label="Страница автора"
-                        title="Открыть страницу автора"
+                        aria-label="Author's page"
+                        title="Open author's page"
                         className="hover:underline hover:text-foreground transition-colors"
                         data-testid="link-author"
                       >
@@ -143,7 +143,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                 data-testid="button-copy-modal"
               >
                 <Copy className="h-3 w-3" />
-                Скопировать
+                Copy
               </Button>
             </div>
           </div>
@@ -151,7 +151,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
           {/* Footer — не скроллится */}
           <div className="px-6 py-4 border-t">
             <div className="text-xs text-muted-foreground text-center">
-              Нажмите Esc для закрытия или Ctrl+C для копирования
+              Press Esc to close or Ctrl+C to copy
             </div>
           </div>
         </div>
