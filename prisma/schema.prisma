@@ -18,6 +18,9 @@ model Stage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Обратная связь с промптами
+  prompts Prompt[]
+
   @@map("stages")
 }
 
@@ -26,12 +29,16 @@ model Prompt {
   title      String   @db.VarChar(200)
   slug       String   @unique @db.VarChar(200)
   summary    String   @db.VarChar(500)
-  stage      String   @db.VarChar(100) // например: initiation, planning, execution, monitoring, closure
+  stage      String   @db.VarChar(100) // например: initiation, planning, execution, monitoring, closure (будет удалено после миграции)
+  stageId    String?  @db.VarChar(100) // внешний ключ на stages.id
   fullText   String   @db.Text
   authorName String?  @db.VarChar(200) // имя автора (опционально)
   authorUrl  String?  @db.VarChar(500) // ссылка на страницу автора (опционально)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  // Связь со стадией
+  stageRef Stage? @relation(fields: [stageId], references: [id])
 
   @@map("prompts")
 }
