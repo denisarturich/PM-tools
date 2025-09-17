@@ -101,8 +101,8 @@ app.use((req, res, next) => {
     }
   }
 
-  // bind под nginx (по умолчанию 127.0.0.1:3000)
-  const port = Number(process.env.PORT ?? 3000);
+  // bind под nginx (принудительно 127.0.0.1:3000)
+  const port = 3000; // Принудительно используем порт 3000 для nginx
   const host = process.env.HOST ?? '127.0.0.1';
 
   server.listen(
