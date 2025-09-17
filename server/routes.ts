@@ -3,7 +3,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import prisma from "./prisma";
 import { getStageOrder, sortPromptsByStage } from "./stageSort";
-import { STAGE_DISPLAY_NAMES, ProjectStage } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Prompts API routes
@@ -32,22 +31,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         where.stage = stage;
       }
 
-      // Получаем промпты без сортировки по времени (будем сортировать сами)
+      // Получаем промпты с данными о стадиях (используем обычный Prisma запрос)
       const [promptsData, total] = await Promise.all([
         prisma.prompt.findMany({
           where,
           skip,
           take,
-          // Убираем orderBy - будем сортировать по этапам
+          orderBy: [
+            { createdAt: 'asc' }
+          ]
         }),
         prisma.prompt.count({ where }),
       ]);
 
-      // Получаем настроенный порядок этапов
-      const stageWeights = await getStageOrder();
+      // Получаем данные о стадиях отдельно
+      const stagesMap = new Map();
+      const stagesData = await prisma.$queryRaw`
+        SELECT id, name, priority, color FROM stages
+      ` as Array<{id: string, name: string, priority: number, color: string}>;
       
-      // Сортируем промпты по этапам, затем по дате создания
-      const prompts = sortPromptsByStage(promptsData, stageWeights);
+      stagesData.forEach(stage => {
+        stagesMap.set(stage.name, stage);
+        stagesMap.set(stage.id, stage);
+      });
+
+      // Добавляем данные о стадиях к промптам  
+      const prompts = promptsData.map(prompt => {
+        const stageDetails = stagesMap.get(prompt.stage);
+        return {
+          ...prompt,
+          stageDetails: stageDetails || null
+        };
+      });
+
+      // Сортируем по приоритету стадий, затем по дате создания
+      prompts.sort((a, b) => {
+        const aPriority = a.stageDetails?.priority || 999;
+        const bPriority = b.stageDetails?.priority || 999;
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
+        }
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
 
       res.json({
         prompts,
@@ -64,30 +89,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GET /api/stages - получение списка стадий с отображаемыми названиями
+  // GET /api/stages - получение списка стадий из новой таблицы stages
   app.get("/api/stages", async (req, res) => {
     try {
-      // Получаем уникальные стадии из базы данных
-      const stagesData = await prisma.prompt.findMany({
-        select: {
-          stage: true,
-        },
-        distinct: ['stage'],
-      });
+      // Получаем все стадии из новой таблицы stages
+      const stagesData = await prisma.$queryRaw`
+        SELECT id, name, priority, color FROM stages ORDER BY priority ASC
+      ` as Array<{id: string, name: string, priority: number, color: string}>;
 
-      // Преобразуем в нужный формат с отображаемыми названиями
+      // Преобразуем в нужный формат для фильтра
       const stages = [
         { value: "all", label: "All stages" },
-        ...stagesData.map(({ stage }) => ({
-          value: stage,
-          label: STAGE_DISPLAY_NAMES[stage as ProjectStage] || stage,
-        })).sort((a, b) => {
-          // Сортируем по порядку из enum
-          const order = [ProjectStage.INITIATION, ProjectStage.PLANNING, ProjectStage.EXECUTION, ProjectStage.MONITORING, ProjectStage.CLOSURE];
-          const aIndex = order.indexOf(a.value as ProjectStage);
-          const bIndex = order.indexOf(b.value as ProjectStage);
-          return aIndex - bIndex;
-        }),
+        ...stagesData.map(stage => ({
+          value: stage.name,
+          label: stage.name,
+          color: stage.color,
+          priority: stage.priority
+        }))
       ];
 
       res.json({ stages });
