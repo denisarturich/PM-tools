@@ -49,7 +49,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             stageRef: true, // Включаем связанную стадию
           },
           orderBy: [
-            { createdAt: 'asc' }
+            { stageRef: { priority: 'asc' } }, // Сначала сортируем по приоритету стадии
+            { createdAt: 'asc' }               // Потом по дате создания внутри стадии
           ]
         }),
         prisma.prompt.count({ where }),
