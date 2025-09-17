@@ -16,7 +16,7 @@ export default function Footer() {
           />
         </div>
         <p className="text-center text-sm text-muted-foreground">
-          Made with a love for project managers<br />
+          Made with love for project managers<br />
           Author: <span className="font-medium text-foreground">Denis Nikolaev</span>
         </p>
         <a
