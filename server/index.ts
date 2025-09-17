@@ -48,9 +48,9 @@ app.use((req, res, next) => {
   let captured: unknown;
 
   const origJson = res.json.bind(res);
-  (res as any).json = (body: unknown, ...args: any[]) => {
+  (res as any).json = (body: unknown) => {
     captured = body;
-    return origJson(body, ...args);
+    return origJson(body);
   };
 
   res.on('finish', () => {
