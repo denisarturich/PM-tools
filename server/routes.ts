@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import prisma from "./prisma";
 import { getStageOrder, sortPromptsByStage } from "./stageSort";
+import type { Prisma } from "@prisma/client";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Prompts API routes
@@ -26,17 +27,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ];
       }
       
-      // Stage filter
+      // Stage filter - now using stageId
       if (stage && typeof stage === "string" && stage !== "all") {
-        where.stage = stage;
+        // Find the stage by name to get its ID
+        const stageRecord = await prisma.stage.findFirst({
+          where: { name: stage },
+          select: { id: true }
+        });
+        if (stageRecord) {
+          where.stageId = stageRecord.id;
+        }
       }
 
-      // Получаем промпты с данными о стадиях (используем обычный Prisma запрос)
+      // Получаем промпты с данными о стадиях через JOIN
       const [promptsData, total] = await Promise.all([
         prisma.prompt.findMany({
           where,
           skip,
           take,
+          include: {
+            stageRef: true, // Включаем связанную стадию
+          },
           orderBy: [
             { createdAt: 'asc' }
           ]
@@ -44,34 +55,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         prisma.prompt.count({ where }),
       ]);
 
-      // Получаем данные о стадиях отдельно
-      const stagesMap = new Map();
-      const stagesData = await prisma.$queryRaw`
-        SELECT id, name, priority, color FROM stages
-      ` as Array<{id: string, name: string, priority: number, color: string}>;
-      
-      stagesData.forEach(stage => {
-        stagesMap.set(stage.name, stage);
-        stagesMap.set(stage.id, stage);
-      });
-
-      // Добавляем данные о стадиях к промптам  
+      // Преобразуем данные для фронтенда (переименовываем stageRef в stageDetails)
       const prompts = promptsData.map(prompt => {
-        const stageDetails = stagesMap.get(prompt.stage);
+        const { stageRef, ...rest } = prompt;
         return {
-          ...prompt,
-          stageDetails: stageDetails || null
+          ...rest,
+          stageDetails: stageRef || null
         };
-      });
-
-      // Сортируем по приоритету стадий, затем по дате создания
-      prompts.sort((a, b) => {
-        const aPriority = a.stageDetails?.priority || 999;
-        const bPriority = b.stageDetails?.priority || 999;
-        if (aPriority !== bPriority) {
-          return aPriority - bPriority;
-        }
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       });
 
       res.json({
@@ -101,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stages = [
         { value: "all", label: "All stages" },
         ...stagesData.map(stage => ({
-          value: stage.name,
+          value: stage.id,
           label: stage.name,
           color: stage.color,
           priority: stage.priority
@@ -122,13 +112,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const prompt = await prisma.prompt.findUnique({
         where: { slug },
+        include: {
+          stageRef: true, // Include stage details for consistency
+        },
       });
 
       if (!prompt) {
         return res.status(404).json({ error: "Prompt not found" });
       }
 
-      res.json(prompt);
+      // Transform data for frontend (rename stageRef to stageDetails)
+      const { stageRef, ...rest } = prompt;
+      const responseData = {
+        ...rest,
+        stageDetails: stageRef || null
+      };
+
+      res.json(responseData);
     } catch (error) {
       console.error("Error fetching prompt:", error);
       res.status(500).json({ error: "Failed to fetch prompt" });
@@ -146,6 +146,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ 
           error: "Missing required fields: title, summary, stage, fullText" 
         });
+      }
+
+      // Find stage by name to get stageId
+      const stageRecord = await prisma.stage.findFirst({
+        where: { name: stage },
+        select: { id: true }
+      });
+      
+      if (!stageRecord) {
+        return res.status(400).json({ error: `Stage '${stage}' not found` });
       }
 
       // Generate slug from title
@@ -171,7 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title,
           slug,
           summary,
-          stage,
+          stage, // Keep for backward compatibility
+          stageId: stageRecord.id, // New stageId reference
           fullText,
           ...(authorName && { authorName }),
           ...(authorUrl && { authorUrl }),
@@ -223,13 +234,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         slug = newSlug;
       }
 
+      // Find stage by name to get stageId if stage is being updated
+      let stageId = undefined;
+      if (stage) {
+        const stageRecord = await prisma.stage.findFirst({
+          where: { name: stage },
+          select: { id: true }
+        });
+        
+        if (!stageRecord) {
+          return res.status(400).json({ error: `Stage '${stage}' not found` });
+        }
+        stageId = stageRecord.id;
+      }
+
       const prompt = await prisma.prompt.update({
         where: { id },
         data: {
           ...(title && { title }),
           ...(slug !== existingPrompt.slug && { slug }),
           ...(summary && { summary }),
-          ...(stage && { stage }),
+          ...(stage && { stage }), // Keep for backward compatibility
+          ...(stageId && { stageId }), // Update stageId reference
           ...(fullText && { fullText }),
           ...(authorName !== undefined && { authorName }),
           ...(authorUrl !== undefined && { authorUrl }),
