@@ -101,9 +101,12 @@ app.use((req, res, next) => {
     }
   }
 
-  // bind под nginx (принудительно 127.0.0.1:3000)
-  const port = 3000; // Принудительно используем порт 3000 для nginx
+  // Умный выбор порта: 5000 для Replit, 3000 для nginx и других сред
+  const isReplit = process.env.REPLIT_DB_URL || process.env.REPL_ID || process.env.REPLIT_DEV_DOMAIN;
+  const port = isReplit ? 5000 : 3000;
   const host = process.env.HOST ?? '127.0.0.1';
+  
+  console.log(`[config] Environment: ${isReplit ? 'Replit' : 'External'}, using port ${port}`);
 
   server.listen(
     { port, host, reusePort: true },
