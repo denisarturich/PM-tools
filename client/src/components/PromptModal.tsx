@@ -4,13 +4,48 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { type Prompt, STAGE_DISPLAY_NAMES, ProjectStage } from "@shared/schema";
+
+interface StageDetails {
+  name: string;
+  priority: number;
+  color: string;
+}
+
+interface PromptWithStageDetails {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  stage: string;
+  stageDetails?: StageDetails | null;
+  fullText: string;
+  authorName?: string | null;
+  authorUrl?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 interface PromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  prompt: Prompt | null;
+  prompt: PromptWithStageDetails | null;
 }
+
+// Helper function to convert color name to Tailwind classes
+const getStageColorClasses = (color: string): string => {
+  const colorMap: Record<string, string> = {
+    blue: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    green: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    orange: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+    purple: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+    red: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    yellow: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    indigo: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+    pink: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+    gray: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+  };
+  return colorMap[color] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+};
 
 
 export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProps) {
@@ -90,8 +125,10 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                 </DialogDescription>
               </div>
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Badge className="bg-primary/10 text-primary w-fit">
-                  {STAGE_DISPLAY_NAMES[prompt.stage as ProjectStage] || prompt.stage}
+                <Badge 
+                  className={`w-fit ${prompt.stageDetails?.color ? getStageColorClasses(prompt.stageDetails.color) : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'}`}
+                >
+                  {prompt.stageDetails?.name || prompt.stage}
                 </Badge>
                 {/* Блок автора на одном уровне с этапом */}
                 {prompt.authorName?.trim() && (

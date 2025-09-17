@@ -98,6 +98,7 @@ export default function Home() {
                 title={prompt.title}
                 summary={prompt.summary}
                 stage={prompt.stage}
+                stageDetails={(prompt as any).stageDetails}
                 tags={[]}
                 fullText={prompt.fullText}
                 onExpand={() => handleExpandPrompt(prompt)}

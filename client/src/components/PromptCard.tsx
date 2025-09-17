@@ -3,25 +3,38 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Expand } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { STAGE_DISPLAY_NAMES, ProjectStage } from "@shared/schema";
+
+interface StageDetails {
+  name: string;
+  priority: number;
+  color: string;
+}
 
 interface PromptCardProps {
   id: string;
   title: string;
   summary: string;
   stage: string;
+  stageDetails?: StageDetails | null;
   tags: string[];
   fullText: string;
   onExpand: () => void;
 }
 
-
-const STAGE_COLORS: Record<string, string> = {
-  initiation: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  planning: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  execution: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", 
-  monitoring: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  closure: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+// Helper function to convert color name to Tailwind classes
+const getStageColorClasses = (color: string): string => {
+  const colorMap: Record<string, string> = {
+    blue: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    green: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    orange: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+    purple: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+    red: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    yellow: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    indigo: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+    pink: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+    gray: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+  };
+  return colorMap[color] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
 };
 
 export default function PromptCard({
@@ -29,6 +42,7 @@ export default function PromptCard({
   title,
   summary,
   stage,
+  stageDetails,
   tags,
   fullText,
   onExpand
@@ -66,10 +80,10 @@ export default function PromptCard({
             {title}
           </h3>
           <Badge 
-            className={`shrink-0 ${STAGE_COLORS[stage] || 'bg-gray-100 text-gray-800'}`}
+            className={`shrink-0 ${stageDetails?.color ? getStageColorClasses(stageDetails.color) : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'}`}
             data-testid={`badge-stage-${stage}`}
           >
-            {STAGE_DISPLAY_NAMES[stage as ProjectStage] || stage}
+            {stageDetails?.name || stage}
           </Badge>
         </div>
       </CardHeader>
