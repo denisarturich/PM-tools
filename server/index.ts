@@ -109,7 +109,8 @@ app.use((req, res, next) => {
   console.log(`[config] Environment: ${isReplit ? 'Replit' : 'External'}, using port ${port}`);
 
   server.listen(
-    { port, host, reusePort: true },
+    port,
+    host,
     () => log(`serving on ${host}:${port}`)
   );
 })();
