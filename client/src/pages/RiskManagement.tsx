@@ -19,6 +19,7 @@ import RiskTable from "@/components/risk-management/RiskTable";
 import RiskMatrix from "@/components/risk-management/RiskMatrix";
 import RoamBoard from "@/components/risk-management/RoamBoard";
 import AddRiskDialog from "@/components/risk-management/AddRiskDialog";
+import ExcelJS from 'exceljs';
 
 export type ImpactStrength = 'low' | 'medium' | 'high';
 export type Probability = 'low' | 'medium' | 'high';
@@ -196,10 +197,140 @@ export default function RiskManagement() {
     });
   };
 
-  const handleExport = () => {
+  const exportToExcel = async () => {
+    // Check if there are any risks to export
+    if (risks.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "Add some risks first before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Risks');
+
+    // Define columns with headers
+    worksheet.columns = [
+      { header: 'Task', key: 'task', width: 20 },
+      { header: 'Risk', key: 'risk', width: 30 },
+      { header: 'Impact', key: 'impact', width: 30 },
+      { header: 'Impact Strength', key: 'impactStrength', width: 18 },
+      { header: 'Probability', key: 'probability', width: 15 },
+      { header: 'ROAM Status', key: 'roaming', width: 15 },
+      { header: 'Actions', key: 'actions', width: 35 },
+      { header: 'Owner', key: 'owner', width: 15 },
+      { header: 'Created', key: 'created', width: 12 },
+    ];
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // Helper function to get color for risk level (pastel colors for better readability)
+    const getColorForValue = (value: string) => {
+      const lowerValue = value.toLowerCase();
+      
+      if (lowerValue === 'high') {
+        return { 
+          bg: 'FFFEE2E2',  // Light rose/pink (Tailwind rose-100)
+          text: 'FF991B1B'  // Dark red text
+        };
+      }
+      
+      if (lowerValue === 'medium') {
+        return { 
+          bg: 'FFFEF3C7',  // Light amber/yellow (Tailwind amber-100)
+          text: 'FF92400E'  // Dark brown text
+        };
+      }
+      
+      if (lowerValue === 'low') {
+        return { 
+          bg: 'FFD1F4E0',  // Light mint/green (Tailwind emerald-100)
+          text: 'FF0F6938'  // Dark green text
+        };
+      }
+      
+      return { 
+        bg: 'FFFFFFFF',  // White background
+        text: 'FF000000'  // Black text
+      };
+    };
+
+    // Add data rows
+    risks.forEach((risk) => {
+      const impactValue = risk.impactStrength 
+        ? risk.impactStrength.charAt(0).toUpperCase() + risk.impactStrength.slice(1)
+        : '-';
+      const probValue = risk.probability
+        ? risk.probability.charAt(0).toUpperCase() + risk.probability.slice(1)
+        : '-';
+
+      const row = worksheet.addRow({
+        task: risk.task || '-',
+        risk: risk.risk,
+        impact: risk.impact || '-',
+        impactStrength: impactValue,
+        probability: probValue,
+        roaming: risk.roaming
+          ? risk.roaming.charAt(0).toUpperCase() + risk.roaming.slice(1)
+          : 'None',
+        actions: risk.actions || '-',
+        owner: risk.owner || '-',
+        created: new Date(risk.createdAt).toLocaleDateString(),
+      });
+
+      // Apply color to Impact Strength cell (column 4)
+      const impactColors = getColorForValue(impactValue);
+      row.getCell(4).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: impactColors.bg }
+      };
+      row.getCell(4).font = {
+        bold: true,
+        color: { argb: impactColors.text }
+      };
+      row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Apply color to Probability cell (column 5)
+      const probColors = getColorForValue(probValue);
+      row.getCell(5).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: probColors.bg }
+      };
+      row.getCell(5).font = {
+        bold: true,
+        color: { argb: probColors.text }
+      };
+      row.getCell(5).alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    // Generate filename with current date
+    const fileName = `PM-Tools_Risks_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    // Write to buffer and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+
+    // Show success toast notification
     toast({
-      title: "Export feature",
-      description: "Excel export coming soon! For now, use browser print.",
+      title: "Export successful",
+      description: `${risks.length} risk${risks.length === 1 ? '' : 's'} exported to ${fileName}`,
     });
   };
 
@@ -212,7 +343,7 @@ export default function RiskManagement() {
         <div className="container mx-auto px-6 max-w-7xl py-6">
         {/* Action buttons */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={exportToExcel}>
             Export to Excel
           </Button>
           <Button variant="destructive" onClick={() => setClearDialogOpen(true)}>
