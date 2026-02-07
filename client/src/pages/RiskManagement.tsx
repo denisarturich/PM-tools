@@ -209,7 +209,7 @@ export default function RiskManagement() {
       
       {/* Main content */}
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-6 max-w-7xl py-6">
         {/* Action buttons */}
         <div className="flex flex-wrap gap-3 mb-6">
           <Button variant="outline" onClick={handleExport}>

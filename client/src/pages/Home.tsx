@@ -86,9 +86,10 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       
-      <main className="flex-grow container mx-auto px-4 py-6">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <Filters
+      <main className="flex-1">
+        <div className="container mx-auto px-6 max-w-7xl py-6">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <Filters
             selectedStage={selectedStage}
             selectedTags={[]}
             availableTags={[]}
@@ -114,23 +115,23 @@ export default function Home() {
               Suggest a Prompt
             </a>
           </Button>
-        </div>
+          </div>
 
-        {isLoading ? (
+          {isLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
             <p className="mt-4 text-muted-foreground">Loading prompts...</p>
           </div>
-        ) : error ? (
+          ) : error ? (
           <div className="text-center py-8">
             <p className="text-destructive">Error loading prompts</p>
             <p className="text-sm text-muted-foreground mt-2">
               {error instanceof Error ? error.message : 'Unknown error'}
             </p>
           </div>
-        ) : filteredPrompts.length === 0 ? (
+          ) : filteredPrompts.length === 0 ? (
           <EmptyState />
-        ) : (
+          ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPrompts.map((prompt) => (
               <PromptCard
@@ -146,7 +147,8 @@ export default function Home() {
               />
             ))}
           </div>
-        )}
+          )}
+        </div>
       </main>
 
       <PromptModal

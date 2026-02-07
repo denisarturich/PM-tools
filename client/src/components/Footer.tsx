@@ -3,8 +3,8 @@ import authorPhoto from "@assets/author-photo-hq.png";
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t mt-10 py-6 bg-muted/30">
-      <div className="max-w-4xl mx-auto flex flex-col items-center gap-3 px-4">
+    <footer className="border-t bg-muted/30">
+      <div className="container mx-auto px-6 max-w-7xl py-12 flex flex-col items-center gap-3">
         <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center shadow-md overflow-hidden">
           <img 
             src={authorPhoto} 

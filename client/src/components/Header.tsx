@@ -5,21 +5,49 @@ import { Link, useLocation } from "wouter";
 export default function Header() {
   const [location] = useLocation();
 
+  // Dynamic content based on current page
+  const pageContent = {
+    '/': {
+      title: 'Prompt Directory for Project Managers',
+      description: 'Ready-made prompt templates for any project stage'
+    },
+    '/risk-management': {
+      title: 'Risk Management',
+      description: 'Identify, assess, and mitigate project risks'
+    }
+  };
+
+  const currentPage = pageContent[location as keyof typeof pageContent] || pageContent['/'];
+
   return (
-    <header className="px-4 pt-6 pb-6 border-b bg-card">
-      <div className="container mx-auto">
+    <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+      <div className="container mx-auto px-6 max-w-7xl py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <h1 className="text-lg font-semibold text-foreground">
-              Prompt Directory for Project Managers
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Ready-made prompt templates for any project stage
-            </p>
+          {/* Breadcrumb-style left section */}
+          <div className="flex items-center gap-3">
+            {/* Site name */}
+            <Link href="/">
+              <h1 className="text-2xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
+                PM-Tools
+              </h1>
+            </Link>
+            
+            {/* Separator */}
+            <span className="text-2xl text-muted-foreground">›</span>
+            
+            {/* Dynamic page info */}
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground">
+                {currentPage.title}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {currentPage.description}
+              </span>
+            </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            {/* Navigation buttons */}
+          {/* Navigation */}
+          <nav className="flex items-center gap-2">
             <Button
               asChild
               variant={location === '/' ? 'default' : 'ghost'}
@@ -41,7 +69,7 @@ export default function Header() {
                 Risk Management
               </Link>
             </Button>
-          </div>
+          </nav>
         </div>
       </div>
     </header>
