@@ -6,6 +6,8 @@ import PromptCard from "@/components/PromptCard";
 import PromptModal from "@/components/PromptModal";
 import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { type Prompt, type PromptsResponse } from "@shared/schema";
 
 // Fetch prompts from API
@@ -36,6 +38,10 @@ export default function Home() {
   const [selectedStage, setSelectedStage] = useState("all");
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
+  
+  const linkedinUrl = "https://www.linkedin.com/in/nikden";
+  const fallbackEmail = "dnicolaev92@gmail.com";
 
   // Fetch prompts with React Query
   const { 
@@ -59,12 +65,29 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
+  const handleSuggestPrompt = () => {
+    toast({
+      title: "Contact me",
+      description: "If LinkedIn doesn't open or is unavailable, send an email",
+      action: (
+        <Button
+          size="sm"
+          onClick={() => {
+            window.open(`mailto:${fallbackEmail}?subject=Prompt%20Suggestion&body=Hi!%20I%20want%20to%20suggest%20a%20prompt%20for%20the%20directory.`, '_blank');
+          }}
+        >
+          Send Email
+        </Button>
+      ),
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header onSuggestPrompt={() => console.log('Suggest prompt clicked')} />
+      <Header />
       
       <main className="flex-grow container mx-auto px-4 py-6">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <Filters
             selectedStage={selectedStage}
             selectedTags={[]}
@@ -73,6 +96,24 @@ export default function Home() {
             onTagToggle={() => {}}
             onClearFilters={handleClearFilters}
           />
+          
+          <Button 
+            asChild
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-2"
+            data-testid="button-suggest-prompt"
+            title="Contact via LinkedIn or email: dnicolaev92@gmail.com"
+          >
+            <a 
+              href={linkedinUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={handleSuggestPrompt}
+            >
+              Suggest a Prompt
+            </a>
+          </Button>
         </div>
 
         {isLoading ? (

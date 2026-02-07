@@ -1,35 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink, LinkedinIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { ShieldAlert } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
-interface HeaderProps {
-  onSuggestPrompt?: () => void;
-}
-
-export default function Header({ onSuggestPrompt }: HeaderProps) {
-  const { toast } = useToast();
-  const linkedinUrl = "https://www.linkedin.com/in/nikden";
-  const fallbackEmail = "dnicolaev92@gmail.com";
-
-  const handleSuggestPrompt = () => {
-    // Показываем toast с вариантом написать на почту
-    toast({
-      title: "Contact me",
-      description: "If LinkedIn doesn't open or is unavailable, send an email",
-      action: (
-        <Button
-          size="sm"
-          onClick={() => {
-            window.open(`mailto:${fallbackEmail}?subject=Prompt%20Suggestion&body=Hi!%20I%20want%20to%20suggest%20a%20prompt%20for%20the%20directory.`, '_blank');
-          }}
-        >
-          Send Email
-        </Button>
-      ),
-    });
-    
-    onSuggestPrompt?.();
-  };
+export default function Header() {
+  const [location] = useLocation();
 
   return (
     <header className="px-4 pt-6 pb-6 border-b bg-card">
@@ -44,22 +18,30 @@ export default function Header({ onSuggestPrompt }: HeaderProps) {
             </p>
           </div>
           
-          <Button 
-            asChild
-            size="sm"
-            className="flex items-center gap-2"
-            data-testid="button-suggest-prompt"
-            title="Contact via LinkedIn or email: dnicolaev92@gmail.com"
-          >
-            <a 
-              href={linkedinUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              onClick={handleSuggestPrompt}
+          <div className="flex items-center gap-2">
+            {/* Navigation buttons */}
+            <Button
+              asChild
+              variant={location === '/' ? 'default' : 'ghost'}
+              size="sm"
             >
-              Suggest a Prompt
-            </a>
-          </Button>
+              <Link href="/">
+                Prompts
+              </Link>
+            </Button>
+            
+            <Button
+              asChild
+              variant={location === '/risk-management' ? 'default' : 'ghost'}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Link href="/risk-management">
+                <ShieldAlert className="h-4 w-4" />
+                Risk Management
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </header>
