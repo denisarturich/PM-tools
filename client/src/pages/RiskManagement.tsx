@@ -39,71 +39,6 @@ export interface Risk {
   updatedAt: string;
 }
 
-const EXAMPLE_RISKS: Risk[] = [
-  {
-    id: crypto.randomUUID(),
-    task: "Mobile app release",
-    risk: "App Store might reject submission due to unclear privacy policy",
-    impact: "Release delayed by 2 weeks, miss Q1 marketing window",
-    impactStrength: "high",
-    probability: "medium",
-    roaming: "mitigated",
-    actions: "- Submit explanatory note with review\n- Prepare alternative policy wording\n- Have legal team on standby",
-    owner: "Sarah",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: crypto.randomUUID(),
-    task: "Database migration",
-    risk: "Migration script might fail on production due to data inconsistencies",
-    impact: "Service downtime for 2-4 hours, potential data loss",
-    impactStrength: "high",
-    probability: "low",
-    roaming: "mitigated",
-    actions: "- Full backup before migration\n- Test on staging with prod snapshot\n- Rollback plan ready\n- DBA on duty during migration",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: crypto.randomUUID(),
-    task: "New feature launch",
-    risk: "Competitor might launch similar feature before us",
-    impact: "Reduced market impact, less PR buzz",
-    impactStrength: "medium",
-    probability: "medium",
-    roaming: "owned",
-    owner: "Alex",
-    actions: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: crypto.randomUUID(),
-    task: "API integration",
-    risk: "Third-party API might have downtime during launch",
-    impact: "Feature partially unavailable, customer complaints",
-    impactStrength: "medium",
-    probability: "low",
-    roaming: "accepted",
-    actions: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: crypto.randomUUID(),
-    task: "UI redesign",
-    risk: "Users might not like the new design",
-    impact: "Negative feedback, possible churn",
-    impactStrength: "low",
-    probability: "medium",
-    roaming: null,
-    actions: "",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
-
 export default function RiskManagement() {
   const [risks, setRisks] = useState<Risk[]>([]);
   const [riskOrder, setRiskOrder] = useState<Record<string, string[]>>({});
@@ -124,11 +59,10 @@ export default function RiskManagement() {
         }
       } catch (error) {
         console.error('Error loading risks:', error);
-        setRisks(EXAMPLE_RISKS);
+        setRisks([]);
       }
-    } else {
-      setRisks(EXAMPLE_RISKS);
     }
+    // Start with empty list if no saved data
   }, []);
 
   // Save to localStorage on every change
