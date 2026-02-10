@@ -3,8 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import prisma from "./prisma";
 import type { Prisma } from "@prisma/client";
+import aiRoutes from "./routes/ai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // AI Assistant routes
+  app.use('/api/ai', aiRoutes);
+
   // Prompts API routes
   
   // GET /api/prompts - список всех промптов с фильтрацией

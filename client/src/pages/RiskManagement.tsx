@@ -13,12 +13,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/contexts/SettingsContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import RiskTable from "@/components/risk-management/RiskTable";
 import RiskMatrix from "@/components/risk-management/RiskMatrix";
 import RoamBoard from "@/components/risk-management/RoamBoard";
 import AddRiskDialog from "@/components/risk-management/AddRiskDialog";
+import { AIChatButton } from "@/components/ai-chat/AIChatButton";
+import { AIChatPanel } from "@/components/ai-chat/AIChatPanel";
+import { ChatWelcome } from "@/components/ai-chat/ChatWelcome";
+import { ChatMessage } from "@/components/ai-chat/ChatMessage";
+import { aiService } from "@/services/aiService";
+import { ChatMessage as ChatMessageType, AIAction } from "@/types/ai";
 import ExcelJS from 'exceljs';
 
 export type ImpactStrength = 'low' | 'medium' | 'high';
@@ -46,6 +53,21 @@ export default function RiskManagement() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { aiEnabled } = useSettings();
+  
+  // AI Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatView, setChatView] = useState<'welcome' | 'conversation'>('welcome');
+  const [chatMessages, setChatMessages] = useState<ChatMessageType[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isAILoading, setIsAILoading] = useState(false);
+
+  // Sync AI service mode with settings
+  useEffect(() => {
+    // When AI is enabled in settings, use real Claude API (useMock = false)
+    // When AI is disabled, use mock (though button will be hidden anyway)
+    aiService.setUseMock(!aiEnabled);
+  }, [aiEnabled]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -129,6 +151,328 @@ export default function RiskManagement() {
       title: "All risks cleared",
       description: "Your risk list has been reset.",
     });
+  };
+
+  /**
+   * Handle AI action button clicks
+   */
+  const handleAIAction = async (action: AIAction) => {
+    switch (action.type) {
+      case 'add_risks':
+        await handleAddRisks(action.data);
+        break;
+      
+      case 'add_mitigation':
+        await handleAddMitigation(action.data);
+        break;
+      
+      case 'analyze':
+        await handleAnalyze();
+        break;
+      
+      case 'navigate':
+        handleNavigate(action.data);
+        break;
+      
+      default:
+        console.warn('Unknown action type:', action.type);
+    }
+  };
+
+  /**
+   * Add risks to table
+   */
+  const handleAddRisks = async (data: any) => {
+    const lastAIMessage = [...chatMessages]
+      .reverse()
+      .find(m => m.role === 'assistant' && 'data' in m && m.data?.risks);
+
+    if (!lastAIMessage || !('data' in lastAIMessage) || !lastAIMessage.data?.risks) {
+      toast({
+        title: 'Error',
+        description: 'No risks found to add',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Add all risks (selection mode removed since button is gone)
+    const risksToAdd = lastAIMessage.data.risks.map(r => ({
+      task: r.task || '',
+      risk: r.risk,
+      impact: r.impact || '',
+      impactStrength: r.impactStrength || null,
+      probability: r.probability || null,
+      roaming: null,
+      actions: '',
+      owner: undefined,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    setRisks([...risks, ...risksToAdd]);
+
+    toast({
+      title: 'Risks added',
+      description: `Added ${risksToAdd.length} risks to your table`,
+    });
+
+    const successMessage: ChatMessageType = {
+      role: 'assistant',
+      message: `✅ Done! Added ${risksToAdd.length} risks to your table.\n\n🤖 What's next?`,
+      actions: [
+        {
+          type: 'analyze',
+          label: '🔍 Analyze these risks',
+          data: {},
+          variant: 'default',
+          icon: '🔍',
+        },
+        {
+          type: 'navigate',
+          label: '💡 Suggest mitigation',
+          data: { view: 'mitigate' },
+          variant: 'secondary',
+          icon: '💡',
+        },
+        {
+          type: 'navigate',
+          label: '🏠 Back to menu',
+          data: { view: 'welcome' },
+          variant: 'outline',
+          icon: '🏠',
+        },
+      ],
+      timestamp: new Date(),
+    };
+
+    setChatMessages([...chatMessages, successMessage]);
+  };
+
+  /**
+   * Add mitigation to risk
+   */
+  const handleAddMitigation = async (data: any) => {
+    const { riskId, actions: mitigationActions } = data;
+
+    updateRisk(riskId, {
+      actions: mitigationActions.join('\n• '),
+      roaming: 'mitigated',
+    });
+
+    toast({
+      title: 'Mitigation added',
+      description: 'Action plan added to risk',
+    });
+
+    const successMessage: ChatMessageType = {
+      role: 'assistant',
+      message: '✅ Mitigation plan added!\n\n🤖 What would you like to do next?',
+      actions: [
+        {
+          type: 'navigate',
+          label: '➡️ Suggest for another risk',
+          data: { action: 'mitigate_next' },
+          variant: 'default',
+        },
+        {
+          type: 'navigate',
+          label: '🏠 Back to menu',
+          data: { view: 'welcome' },
+          variant: 'outline',
+        },
+      ],
+      timestamp: new Date(),
+    };
+
+    setChatMessages([...chatMessages, successMessage]);
+  };
+
+  /**
+   * Analyze risks
+   */
+  const handleAnalyze = async () => {
+    if (risks.length === 0) {
+      // Show message in chat instead of just toast
+      const errorMessage: ChatMessageType = {
+        role: 'assistant',
+        message: '⚠️ You don\'t have any risks yet.\n\nI can\'t analyze an empty table. Let\'s start by generating some risks for your project.',
+        actions: [
+          {
+            type: 'navigate',
+            label: '✨ Generate risks',
+            data: { view: 'generate' },
+            variant: 'default',
+            icon: '✨',
+          },
+          {
+            type: 'navigate',
+            label: '🏠 Back to menu',
+            data: { view: 'welcome' },
+            variant: 'outline',
+            icon: '🏠',
+          },
+        ],
+        timestamp: new Date(),
+      };
+      
+      setChatMessages([errorMessage]);
+      setChatView('conversation');
+      
+      return;
+    }
+
+    setIsAILoading(true);
+
+    try {
+      const response = await aiService.analyzeRisks(risks);
+      setChatMessages([...chatMessages, response]);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to analyze risks',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAILoading(false);
+    }
+  };
+
+  /**
+   * Navigate between views
+   */
+  const handleNavigate = (data: any) => {
+    if (data.view === 'welcome') {
+      setChatView('welcome');
+      setChatMessages([]);
+    } else if (data.view === 'generate') {
+      handleSelectAction('generate');
+    } else if (data.view === 'analyze') {
+      handleSelectAction('analyze');
+    } else if (data.view === 'mitigate') {
+      handleSelectAction('mitigate');
+    } else if (data.action === 'regenerate') {
+      // User wants to generate different risks
+      const regenerateMessage: ChatMessageType = {
+        role: 'assistant',
+        message: 'Sure! Tell me more about your project to generate different risks:\n• Any specific areas of concern?\n• Changed requirements?\n• Different focus areas?',
+        actions: [
+          {
+            type: 'navigate',
+            label: '🏠 Back to menu',
+            data: { view: 'welcome' },
+            variant: 'outline',
+            icon: '🏠',
+          },
+        ],
+        timestamp: new Date(),
+      };
+      setChatMessages([...chatMessages, regenerateMessage]);
+    } else if (data.action === 'help') {
+      // Show help
+      handleSendMessage('help');
+    }
+  };
+
+  /**
+   * Handle quick action selection from welcome screen
+   */
+  const handleSelectAction = async (action: 'generate' | 'analyze' | 'mitigate') => {
+    setChatView('conversation');
+
+    if (action === 'generate') {
+      const promptMessage: ChatMessageType = {
+        role: 'assistant',
+        message: 'Great! Tell me about your project:\n• What are you building?\n• What\'s your timeline?\n• Any specific concerns?',
+        actions: [
+          {
+            type: 'navigate',
+            label: '← Back to menu',
+            data: { view: 'welcome' },
+            variant: 'outline',
+          },
+        ],
+        timestamp: new Date(),
+      };
+      setChatMessages([promptMessage]);
+    } else if (action === 'analyze') {
+      await handleAnalyze();
+    } else if (action === 'mitigate') {
+      if (risks.length === 0) {
+        const errorMessage: ChatMessageType = {
+          role: 'assistant',
+          message: '⚠️ You don\'t have any risks yet.\n\nLet\'s start by generating some risks for your project.',
+          actions: [
+            {
+              type: 'navigate',
+              label: '✨ Generate risks',
+              data: { view: 'generate' },
+              variant: 'default',
+            },
+            {
+              type: 'navigate',
+              label: '🏠 Back to menu',
+              data: { view: 'welcome' },
+              variant: 'outline',
+            },
+          ],
+          timestamp: new Date(),
+        };
+        setChatMessages([errorMessage]);
+      } else {
+        const highRisk = risks.find(r => r.impactStrength === 'high' && r.probability === 'high');
+        if (highRisk) {
+          setIsAILoading(true);
+          const response = await aiService.suggestMitigation(highRisk);
+          setChatMessages([response]);
+          setIsAILoading(false);
+        }
+      }
+    }
+  };
+
+  /**
+   * Handle free-form message send
+   */
+  const handleSendMessage = async (message: string) => {
+    if (!message.trim()) return;
+
+    const userMessage: ChatMessageType = {
+      role: 'user',
+      content: message,
+      timestamp: new Date(),
+    };
+
+    setChatMessages([...chatMessages, userMessage]);
+    setInputMessage('');
+    setChatView('conversation');
+
+    const lastMessage = chatMessages[chatMessages.length - 1];
+    const isGenerateFlow = lastMessage?.role === 'assistant' && 
+      lastMessage.message.includes('Tell me about your project');
+
+    setIsAILoading(true);
+
+    try {
+      let response;
+      
+      if (isGenerateFlow) {
+        response = await aiService.generateRisks(message);
+      } else {
+        response = await aiService.chat(message, { risks });
+      }
+
+      setChatMessages(prev => [...prev, response]);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to get AI response',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAILoading(false);
+    }
   };
 
   const exportToExcel = async () => {
@@ -330,6 +674,58 @@ export default function RiskManagement() {
       </main>
       
       <Footer />
+      
+      {/* AI Chat */}
+      {aiEnabled && (
+        <AIChatButton 
+          onClick={() => setIsChatOpen(true)}
+          suggestionsCount={0}
+        />
+      )}
+      
+      <AIChatPanel 
+        isOpen={isChatOpen} 
+        onClose={() => {
+          setIsChatOpen(false);
+          // Reset to welcome screen when closing
+          setTimeout(() => {
+            setChatView('welcome');
+            setChatMessages([]);
+            setInputMessage('');
+            aiService.clearHistory();
+          }, 300);
+        }}
+        onSendMessage={handleSendMessage}
+        inputValue={inputMessage}
+        onInputChange={setInputMessage}
+      >
+        {chatView === 'welcome' ? (
+          <ChatWelcome onSelectAction={handleSelectAction} />
+        ) : (
+          <div className="space-y-4">
+            {chatMessages.map((msg, i) => (
+              <ChatMessage 
+                key={i} 
+                message={msg}
+                onAction={handleAIAction}
+              />
+            ))}
+            
+            {isAILoading && (
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-foreground text-sm">🤖</span>
+                </div>
+                <div className="flex-1">
+                  <div className="bg-muted rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground">Thinking...</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </AIChatPanel>
       
       {/* Add Risk Dialog */}
       <AddRiskDialog 
