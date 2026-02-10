@@ -1,9 +1,7 @@
 #!/bin/bash
-# Скрипт для деплоя изменений на продакшен
-
 echo "🚀 Starting deployment..."
 
-# 1. Собираем клиент (React/Vite)
+# 1. Build client
 echo "📦 Building client..."
 npm run build:client
 if [ $? -ne 0 ]; then
@@ -11,7 +9,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 2. Собираем сервер (Node/Express)
+# 2. Build server
 echo "📦 Building server..."
 npm run build
 if [ $? -ne 0 ]; then
@@ -19,14 +17,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 3. Перезапускаем PM2
-echo "🔄 Restarting PM2..."
-pm2 restart ecosystem.config.cjs --update-env
-if [ $? -ne 0 ]; then
-    echo "⚠️  PM2 restart failed, trying to start..."
-    pm2 start ecosystem.config.cjs
-fi
+# 3. ВАЖНО: Delete + Start вместо Restart
+echo "🔄 Stopping PM2..."
+pm2 delete pm-tools || true
+
+echo "🚀 Starting PM2 (перечитает .env)..."
+pm2 start ecosystem.config.cjs
+
+pm2 save
 
 echo "✅ Deployment complete!"
-echo "📊 Checking PM2 status..."
 pm2 status
