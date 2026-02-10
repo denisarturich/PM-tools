@@ -1,0 +1,7 @@
+# Замена реальных паролей на ***REMOVED***
+MyStrongPwdForSite==>***REMOVED***
+8rMd6S557YLu==>***REMOVED***
+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==>***REMOVED***
+178.88.115.40==>YOUR_SERVER_IP
+pmtools:MyStrongPwdForSite@==>pmtools:***REMOVED***@
+root:8rMd6S557YLu==>root:***REMOVED***
