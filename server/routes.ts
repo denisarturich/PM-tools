@@ -9,6 +9,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Assistant routes
   app.use('/api/ai', aiRoutes);
 
+  // AI Feature availability check (no auth required)
+  app.get("/api/ai-status", (req, res) => {
+    const enabled = process.env.AI_FEATURE_ENABLED !== 'false';
+    res.json({ enabled });
+  });
+
   // Prompts API routes
   
   // GET /api/prompts - список всех промптов с фильтрацией

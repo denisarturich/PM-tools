@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Settings } from 'lucide-react';
 
 export function SettingsDialog() {
-  const { aiEnabled, setAIEnabled } = useSettings();
+  const { aiEnabled, setAIEnabled, serverAIEnabled } = useSettings();
 
   return (
     <Dialog>
@@ -56,16 +56,27 @@ export function SettingsDialog() {
               id="ai-enabled"
               checked={aiEnabled}
               onCheckedChange={setAIEnabled}
+              disabled={!serverAIEnabled}
             />
           </div>
           
-          {aiEnabled && (
+          {/* Server-side disabled warning */}
+          {!serverAIEnabled && (
+            <div className="text-sm bg-destructive/10 text-destructive p-3 rounded-md border border-destructive/20">
+              ⚠️ <strong>AI Disabled on Server</strong><br />
+              The administrator has disabled AI features. Set <code className="bg-destructive/20 px-1 rounded">AI_FEATURE_ENABLED=true</code> in server <code className="bg-destructive/20 px-1 rounded">.env</code> to enable.
+            </div>
+          )}
+          
+          {/* User enabled and server enabled */}
+          {aiEnabled && serverAIEnabled && (
             <div className="text-sm bg-primary/10 text-primary p-3 rounded-md border border-primary/20">
               ✅ <strong>Real AI Active!</strong> Your assistant will use Claude API to provide intelligent, context-aware responses.
             </div>
           )}
           
-          {!aiEnabled && (
+          {/* User disabled but server enabled */}
+          {!aiEnabled && serverAIEnabled && (
             <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
               💡 AI features are disabled. Toggle on to access AI-powered risk generation, analysis, and mitigation suggestions.
             </div>
