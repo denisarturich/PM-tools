@@ -8,6 +8,9 @@ export function aiFeatureGuard(req: Request, res: Response, next: NextFunction) 
   // Check global feature flag
   const globalEnabled = process.env.AI_FEATURE_ENABLED !== 'false';
   
+  console.log('🔍 AI_FEATURE_ENABLED:', process.env.AI_FEATURE_ENABLED);
+  console.log('🔍 globalEnabled:', globalEnabled);
+
   if (!globalEnabled) {
     return res.status(403).json({
       error: 'AI feature is disabled',
