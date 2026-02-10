@@ -1,0 +1,38 @@
+# Пример файла замен для очистки Git истории
+# Формат: строка_для_поиска==>строка_для_замены
+# Используйте с: git filter-repo --replace-text replacements.txt
+
+# Пароли
+mySecretPassword123==>***REMOVED***
+admin123==>***REMOVED***
+P@ssw0rd==>***REMOVED***
+
+# API ключи
+sk-1234567890abcdefghijklmnop==>***REMOVED***
+AIzaSyD1234567890abcdefghijklmnop==>***REMOVED***
+
+# Токены
+ghp_1234567890abcdefghijklmnopqrstuvwxyz==>***REMOVED***
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9==>Bearer ***REMOVED***
+
+# Database URLs (сохраняем структуру, удаляем пароль)
+postgres://user:password123@localhost:5432/db==>postgres://user:***REMOVED***@localhost:5432/db
+mongodb://admin:pass@localhost:27017==>mongodb://admin:***REMOVED***@localhost:27017
+
+# AWS ключи
+AKIAIOSFODNN7EXAMPLE==>***REMOVED***
+wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY==>***REMOVED***
+
+# Другие секреты
+CLIENT_SECRET=abcdef123456==>CLIENT_SECRET=***REMOVED***
+STRIPE_SECRET_KEY=sk_test_123456789==>STRIPE_SECRET_KEY=***REMOVED***
+TWILIO_AUTH_TOKEN=abc123def456==>TWILIO_AUTH_TOKEN=***REMOVED***
+
+# Регулярные выражения (закомментировано, так как git-filter-repo использует literal matching)
+# regex:password\s*=\s*['"][^'"]+['"]
+# regex:api[_-]?key\s*=\s*['"][^'"]+['"]
+
+# ИНСТРУКЦИЯ:
+# 1. Скопируйте этот файл в replacements.txt
+# 2. Замените примеры на ваши реальные утекшие данные
+# 3. Запустите: git filter-repo --replace-text replacements.txt --force
