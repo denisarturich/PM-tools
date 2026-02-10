@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ShieldAlert } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { SettingsDialog } from "@/components/settings/SettingsDialog";
 
 export default function Header() {
   const [location] = useLocation();
@@ -70,8 +69,6 @@ export default function Header() {
                 Risk Management
               </Link>
             </Button>
-            
-            <SettingsDialog />
           </nav>
         </div>
       </div>
