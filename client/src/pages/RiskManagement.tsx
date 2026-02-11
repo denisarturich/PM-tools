@@ -22,7 +22,6 @@ import RoamBoard from "@/components/risk-management/RoamBoard";
 import AddRiskDialog from "@/components/risk-management/AddRiskDialog";
 import { AIChatButton } from "@/components/ai-chat/AIChatButton";
 import { AIChatPanel } from "@/components/ai-chat/AIChatPanel";
-import { ChatWelcome } from "@/components/ai-chat/ChatWelcome";
 import { ChatMessage } from "@/components/ai-chat/ChatMessage";
 import { aiService } from "@/services/aiService";
 import { ChatMessage as ChatMessageType, AIAction } from "@/types/ai";
@@ -57,10 +56,52 @@ export default function RiskManagement() {
   
   // AI Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatView, setChatView] = useState<'welcome' | 'conversation'>('welcome');
-  const [chatMessages, setChatMessages] = useState<ChatMessageType[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessageType[]>(() => {
+    // Restore from localStorage on mount
+    try {
+      const saved = localStorage.getItem('ai-chat-history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Check if it's an array and not older than 7 days
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const lastMessage = parsed[parsed.length - 1];
+          if (lastMessage.timestamp) {
+            const lastMessageDate = new Date(lastMessage.timestamp);
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            if (lastMessageDate > weekAgo) {
+              // Restore history in aiService as well
+              aiService.restoreHistory(parsed);
+              return parsed;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
+    }
+    return [];
+  });
   const [inputMessage, setInputMessage] = useState('');
   const [isAILoading, setIsAILoading] = useState(false);
+
+  // Save chat messages to localStorage whenever they change
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      try {
+        localStorage.setItem('ai-chat-history', JSON.stringify(chatMessages));
+      } catch (error) {
+        console.error('Failed to save chat history:', error);
+        // If quota exceeded - keep only last 20 messages
+        if (error instanceof Error && error.name === 'QuotaExceededError') {
+          const recent = chatMessages.slice(-20);
+          setChatMessages(recent);
+          localStorage.setItem('ai-chat-history', JSON.stringify(recent));
+        }
+      }
+    } else {
+      localStorage.removeItem('ai-chat-history');
+    }
+  }, [chatMessages]);
 
   // Sync AI service mode with settings
   useEffect(() => {
@@ -236,13 +277,6 @@ export default function RiskManagement() {
           variant: 'secondary',
           icon: '💡',
         },
-        {
-          type: 'navigate',
-          label: '🏠 Back to menu',
-          data: { view: 'welcome' },
-          variant: 'outline',
-          icon: '🏠',
-        },
       ],
       timestamp: new Date(),
     };
@@ -276,12 +310,6 @@ export default function RiskManagement() {
           data: { action: 'mitigate_next' },
           variant: 'default',
         },
-        {
-          type: 'navigate',
-          label: '🏠 Back to menu',
-          data: { view: 'welcome' },
-          variant: 'outline',
-        },
       ],
       timestamp: new Date(),
     };
@@ -306,20 +334,11 @@ export default function RiskManagement() {
             variant: 'default',
             icon: '✨',
           },
-          {
-            type: 'navigate',
-            label: '🏠 Back to menu',
-            data: { view: 'welcome' },
-            variant: 'outline',
-            icon: '🏠',
-          },
         ],
         timestamp: new Date(),
       };
       
-      setChatMessages([errorMessage]);
-      setChatView('conversation');
-      
+      setChatMessages(prev => [...prev, errorMessage]);
       return;
     }
 
@@ -327,7 +346,7 @@ export default function RiskManagement() {
 
     try {
       const response = await aiService.analyzeRisks(risks);
-      setChatMessages([...chatMessages, response]);
+      setChatMessages(prev => [...prev, response]);
     } catch (error) {
       toast({
         title: 'Error',
@@ -340,13 +359,10 @@ export default function RiskManagement() {
   };
 
   /**
-   * Navigate between views
+   * Navigate between views - in continuous dialog, just triggers actions
    */
   const handleNavigate = (data: any) => {
-    if (data.view === 'welcome') {
-      setChatView('welcome');
-      setChatMessages([]);
-    } else if (data.view === 'generate') {
+    if (data.view === 'generate') {
       handleSelectAction('generate');
     } else if (data.view === 'analyze') {
       handleSelectAction('analyze');
@@ -357,46 +373,29 @@ export default function RiskManagement() {
       const regenerateMessage: ChatMessageType = {
         role: 'assistant',
         message: 'Sure! Tell me more about your project to generate different risks:\n• Any specific areas of concern?\n• Changed requirements?\n• Different focus areas?',
-        actions: [
-          {
-            type: 'navigate',
-            label: '🏠 Back to menu',
-            data: { view: 'welcome' },
-            variant: 'outline',
-            icon: '🏠',
-          },
-        ],
         timestamp: new Date(),
       };
-      setChatMessages([...chatMessages, regenerateMessage]);
+      setChatMessages(prev => [...prev, regenerateMessage]);
     } else if (data.action === 'help') {
       // Show help
       handleSendMessage('help');
     }
+    // Ignore 'welcome' navigation - we don't have a welcome screen anymore
   };
 
   /**
-   * Handle quick action selection from welcome screen
+   * Handle quick action selection from Quick Actions bar
    */
   const handleSelectAction = async (action: 'generate' | 'analyze' | 'mitigate') => {
     console.log('[AI Chat] Quick action selected:', action);
-    setChatView('conversation');
 
     if (action === 'generate') {
       const promptMessage: ChatMessageType = {
         role: 'assistant',
         message: 'Great! Tell me about your project:\n• What are you building?\n• What\'s your timeline?\n• Any specific concerns?',
-        actions: [
-          {
-            type: 'navigate',
-            label: '← Back to menu',
-            data: { view: 'welcome' },
-            variant: 'outline',
-          },
-        ],
         timestamp: new Date(),
       };
-      setChatMessages([promptMessage]);
+      setChatMessages(prev => [...prev, promptMessage]);
     } else if (action === 'analyze') {
       await handleAnalyze();
     } else if (action === 'mitigate') {
@@ -411,16 +410,10 @@ export default function RiskManagement() {
               data: { view: 'generate' },
               variant: 'default',
             },
-            {
-              type: 'navigate',
-              label: '🏠 Back to menu',
-              data: { view: 'welcome' },
-              variant: 'outline',
-            },
           ],
           timestamp: new Date(),
         };
-        setChatMessages([errorMessage]);
+        setChatMessages(prev => [...prev, errorMessage]);
       } else {
         // Smart risk selection: prioritize by severity
         let selectedRisk = 
@@ -457,17 +450,9 @@ export default function RiskManagement() {
           const fallbackMessage: ChatMessageType = {
             role: 'assistant',
             message: '⚠️ Could not select a risk for mitigation.\n\nPlease try again or add more details to your risks.',
-            actions: [
-              {
-                type: 'navigate',
-                label: '🏠 Back to menu',
-                data: { view: 'welcome' },
-                variant: 'outline',
-              },
-            ],
             timestamp: new Date(),
           };
-          setChatMessages([fallbackMessage]);
+          setChatMessages(prev => [...prev, fallbackMessage]);
         }
       }
     }
@@ -485,9 +470,8 @@ export default function RiskManagement() {
       timestamp: new Date(),
     };
 
-    setChatMessages([...chatMessages, userMessage]);
+    setChatMessages(prev => [...prev, userMessage]);
     setInputMessage('');
-    setChatView('conversation');
 
     const lastMessage = chatMessages[chatMessages.length - 1];
     const isGenerateFlow = lastMessage?.role === 'assistant' && 
@@ -513,6 +497,21 @@ export default function RiskManagement() {
       });
     } finally {
       setIsAILoading(false);
+    }
+  };
+
+  /**
+   * Handle clearing chat history
+   */
+  const handleClearHistory = () => {
+    if (confirm('Clear all chat history? This cannot be undone.')) {
+      setChatMessages([]);
+      localStorage.removeItem('ai-chat-history');
+      aiService.clearHistory();
+      toast({
+        title: 'History cleared',
+        description: 'Chat history has been cleared',
+      });
     }
   };
 
@@ -726,44 +725,32 @@ export default function RiskManagement() {
       
       <AIChatPanel 
         isOpen={isChatOpen} 
-        onClose={() => {
-          setIsChatOpen(false);
-          // Reset to welcome screen when closing
-          setTimeout(() => {
-            setChatView('welcome');
-            setChatMessages([]);
-            setInputMessage('');
-            aiService.clearHistory();
-          }, 300);
-        }}
+        onClose={() => setIsChatOpen(false)}
         onSendMessage={handleSendMessage}
+        onQuickAction={handleSelectAction}
+        onClearHistory={handleClearHistory}
         inputValue={inputMessage}
         onInputChange={setInputMessage}
+        messagesCount={chatMessages.length}
       >
-        {chatView === 'welcome' ? (
-          <ChatWelcome onSelectAction={handleSelectAction} />
-        ) : (
-          <div className="space-y-4">
-            {chatMessages.map((msg, i) => (
-              <ChatMessage 
-                key={i} 
-                message={msg}
-                onAction={handleAIAction}
-              />
-            ))}
-            
-            {isAILoading && (
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-foreground text-sm">🤖</span>
-                </div>
-                <div className="flex-1">
-                  <div className="bg-muted rounded-lg p-3">
-                    <p className="text-sm text-muted-foreground">Thinking...</p>
-                  </div>
-                </div>
+        {chatMessages.map((msg, i) => (
+          <ChatMessage 
+            key={i} 
+            message={msg}
+            onAction={handleAIAction}
+          />
+        ))}
+        
+        {isAILoading && (
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+              <span className="text-primary-foreground text-sm">🤖</span>
+            </div>
+            <div className="flex-1">
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">Thinking...</p>
               </div>
-            )}
+            </div>
           </div>
         )}
       </AIChatPanel>

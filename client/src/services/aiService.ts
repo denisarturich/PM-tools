@@ -44,6 +44,23 @@ class AIService {
   }
 
   /**
+   * Restore conversation history from saved messages
+   */
+  restoreHistory(messages: any[]) {
+    this.conversationHistory = messages
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(msg => ({
+        role: msg.role,
+        content: msg.role === 'user' ? msg.content : msg.message,
+      }));
+    
+    // Keep only last 10 messages to avoid token limits
+    if (this.conversationHistory.length > 10) {
+      this.conversationHistory = this.conversationHistory.slice(-10);
+    }
+  }
+
+  /**
    * Add message to history
    */
   private addToHistory(role: 'user' | 'assistant', content: string) {
