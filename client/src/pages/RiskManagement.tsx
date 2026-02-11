@@ -379,6 +379,7 @@ export default function RiskManagement() {
    * Handle quick action selection from welcome screen
    */
   const handleSelectAction = async (action: 'generate' | 'analyze' | 'mitigate') => {
+    console.log('[AI Chat] Quick action selected:', action);
     setChatView('conversation');
 
     if (action === 'generate') {
@@ -421,12 +422,52 @@ export default function RiskManagement() {
         };
         setChatMessages([errorMessage]);
       } else {
-        const highRisk = risks.find(r => r.impactStrength === 'high' && r.probability === 'high');
-        if (highRisk) {
+        // Smart risk selection: prioritize by severity
+        let selectedRisk = 
+          // 1. Try high impact + high probability
+          risks.find(r => r.impactStrength === 'high' && r.probability === 'high') ||
+          // 2. Try high impact + medium probability
+          risks.find(r => r.impactStrength === 'high' && r.probability === 'medium') ||
+          // 3. Try any high impact
+          risks.find(r => r.impactStrength === 'high') ||
+          // 4. Try medium impact + high probability
+          risks.find(r => r.impactStrength === 'medium' && r.probability === 'high') ||
+          // 5. Fallback to first risk
+          risks[0];
+
+        console.log('[AI Chat] Selected risk for mitigation:', selectedRisk);
+
+        if (selectedRisk) {
           setIsAILoading(true);
-          const response = await aiService.suggestMitigation(highRisk);
-          setChatMessages([response]);
-          setIsAILoading(false);
+          try {
+            const response = await aiService.suggestMitigation(selectedRisk);
+            setChatMessages([response]);
+          } catch (error) {
+            console.error('[AI Chat] Mitigation error:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to suggest mitigation',
+              variant: 'destructive',
+            });
+          } finally {
+            setIsAILoading(false);
+          }
+        } else {
+          // This should never happen, but handle it gracefully
+          const fallbackMessage: ChatMessageType = {
+            role: 'assistant',
+            message: '⚠️ Could not select a risk for mitigation.\n\nPlease try again or add more details to your risks.',
+            actions: [
+              {
+                type: 'navigate',
+                label: '🏠 Back to menu',
+                data: { view: 'welcome' },
+                variant: 'outline',
+              },
+            ],
+            timestamp: new Date(),
+          };
+          setChatMessages([fallbackMessage]);
         }
       }
     }
