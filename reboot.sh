@@ -17,14 +17,22 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 3. ВАЖНО: Delete + Start вместо Restart
-echo "🔄 Stopping PM2..."
-pm2 delete pm-tools || true
+# 3. Stop PM2
+echo "🛑 Stopping PM2..."
+pm2 stop pm-tools
 
+# 4. Delete process
+echo "🗑️  Deleting PM2 process..."
+pm2 delete pm-tools
+
+# 5. Start fresh (перечитает .env)
 echo "🚀 Starting PM2 (перечитает .env)..."
 pm2 start ecosystem.config.cjs
 
+# 6. Save configuration
+echo "💾 Saving PM2 config..."
 pm2 save
 
 echo "✅ Deployment complete!"
+echo "📊 PM2 status:"
 pm2 status
