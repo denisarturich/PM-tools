@@ -23,6 +23,7 @@ import AddRiskDialog from "@/components/risk-management/AddRiskDialog";
 import { AIChatButton } from "@/components/ai-chat/AIChatButton";
 import { AIChatPanel } from "@/components/ai-chat/AIChatPanel";
 import { ChatMessage } from "@/components/ai-chat/ChatMessage";
+import { RiskSelector } from "@/components/ai-chat/RiskSelector";
 import { aiService } from "@/services/aiService";
 import { ChatMessage as ChatMessageType, AIAction } from "@/types/ai";
 import ExcelJS from 'exceljs';
@@ -83,6 +84,7 @@ export default function RiskManagement() {
   });
   const [inputMessage, setInputMessage] = useState('');
   const [isAILoading, setIsAILoading] = useState(false);
+  const [showRiskSelector, setShowRiskSelector] = useState(false);
 
   // Save chat messages to localStorage whenever they change
   useEffect(() => {
@@ -368,6 +370,9 @@ export default function RiskManagement() {
       handleSelectAction('analyze');
     } else if (data.view === 'mitigate') {
       handleSelectAction('mitigate');
+    } else if (data.action === 'mitigate_critical') {
+      // Suggest mitigation for critical risks
+      handleSelectAction('mitigate');
     } else if (data.action === 'regenerate') {
       // User wants to generate different risks
       const regenerateMessage: ChatMessageType = {
@@ -415,45 +420,8 @@ export default function RiskManagement() {
         };
         setChatMessages(prev => [...prev, errorMessage]);
       } else {
-        // Smart risk selection: prioritize by severity
-        let selectedRisk = 
-          // 1. Try high impact + high probability
-          risks.find(r => r.impactStrength === 'high' && r.probability === 'high') ||
-          // 2. Try high impact + medium probability
-          risks.find(r => r.impactStrength === 'high' && r.probability === 'medium') ||
-          // 3. Try any high impact
-          risks.find(r => r.impactStrength === 'high') ||
-          // 4. Try medium impact + high probability
-          risks.find(r => r.impactStrength === 'medium' && r.probability === 'high') ||
-          // 5. Fallback to first risk
-          risks[0];
-
-        console.log('[AI Chat] Selected risk for mitigation:', selectedRisk);
-
-        if (selectedRisk) {
-          setIsAILoading(true);
-          try {
-            const response = await aiService.suggestMitigation(selectedRisk);
-            setChatMessages([response]);
-          } catch (error) {
-            console.error('[AI Chat] Mitigation error:', error);
-            toast({
-              title: 'Error',
-              description: 'Failed to suggest mitigation',
-              variant: 'destructive',
-            });
-          } finally {
-            setIsAILoading(false);
-          }
-        } else {
-          // This should never happen, but handle it gracefully
-          const fallbackMessage: ChatMessageType = {
-            role: 'assistant',
-            message: '⚠️ Could not select a risk for mitigation.\n\nPlease try again or add more details to your risks.',
-            timestamp: new Date(),
-          };
-          setChatMessages(prev => [...prev, fallbackMessage]);
-        }
+        // Show risk selector modal (all risks selected by default)
+        setShowRiskSelector(true);
       }
     }
   };
@@ -512,6 +480,35 @@ export default function RiskManagement() {
         title: 'History cleared',
         description: 'Chat history has been cleared',
       });
+    }
+  };
+
+  /**
+   * Handle risk selection confirmation for mitigation
+   */
+  const handleRiskSelectionConfirm = async (selectedRisks: Risk[]) => {
+    // Add user message
+    const userMessage: ChatMessageType = {
+      role: 'user',
+      content: `Suggest mitigation for ${selectedRisks.length} risk${selectedRisks.length > 1 ? 's' : ''}`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+
+    setIsAILoading(true);
+
+    try {
+      const response = await aiService.suggestMitigationMultiple(selectedRisks);
+      setChatMessages(prev => [...prev, response]);
+    } catch (error) {
+      console.error('[AI Chat] Mitigation error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to suggest mitigation',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAILoading(false);
     }
   };
 
@@ -780,6 +777,14 @@ export default function RiskManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Risk Selector Modal */}
+      <RiskSelector
+        risks={risks}
+        open={showRiskSelector}
+        onClose={() => setShowRiskSelector(false)}
+        onConfirm={handleRiskSelectionConfirm}
+      />
     </div>
   );
 }

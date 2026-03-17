@@ -196,6 +196,46 @@ class AIService {
   }
 
   /**
+   * Suggest mitigation for multiple risks
+   */
+  async suggestMitigationMultiple(risks: Risk[]): Promise<AIResponse> {
+    if (this.useMock) {
+      return mockAIService.suggestMitigationMultiple(risks);
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ai/suggest-mitigation-multiple`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ risks }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('AI feature is disabled');
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to suggest mitigation');
+      }
+
+      this.addToHistory('assistant', result.data.message);
+
+      return result.data;
+    } catch (error: any) {
+      console.error('AI Service Error:', error);
+      console.warn('Falling back to mock AI service');
+      return mockAIService.suggestMitigationMultiple(risks);
+    }
+  }
+
+  /**
    * Free-form chat
    */
   async chat(message: string, context: { risks: Risk[] }): Promise<AIResponse> {

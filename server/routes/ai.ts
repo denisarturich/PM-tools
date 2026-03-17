@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getClaudeService } from '../services/claudeService';
 import { RISK_GENERATION_PROMPT } from '../prompts/riskGeneration';
 import { RISK_ANALYSIS_PROMPT } from '../prompts/riskAnalysis';
-import { MITIGATION_PROMPT } from '../prompts/mitigation';
+import { MITIGATION_PROMPT, MITIGATION_PROMPT_MULTIPLE } from '../prompts/mitigation';
 import {
   extractJSON,
   extractTextAfterJSON,
@@ -301,6 +301,69 @@ router.post('/suggest-mitigation', async (req, res) => {
     console.error('Mitigation suggestion error:', error);
     res.status(500).json({
       error: 'Failed to suggest mitigation',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/ai/suggest-mitigation-multiple
+ * Suggest mitigation for multiple risks
+ */
+router.post('/suggest-mitigation-multiple', async (req, res) => {
+  try {
+    const { risks } = req.body;
+
+    if (!Array.isArray(risks) || risks.length === 0) {
+      return res.status(400).json({
+        error: 'Risks array is required',
+      });
+    }
+
+    const claudeService = getClaudeService();
+    const prompt = MITIGATION_PROMPT_MULTIPLE(risks);
+
+    const response = await claudeService.sendMessageWithUsage(prompt);
+
+    // Generate actions
+    const actions = [
+      {
+        type: 'navigate',
+        label: '🔍 Analyze these risks',
+        data: { view: 'analyze' },
+        variant: 'default',
+        icon: '🔍',
+      },
+      {
+        type: 'navigate',
+        label: '➡️ Suggest for different risks',
+        data: { view: 'mitigate' },
+        variant: 'secondary',
+        icon: '➡️',
+      },
+      {
+        type: 'navigate',
+        label: '🏠 Back to menu',
+        data: { view: 'welcome' },
+        variant: 'outline',
+        icon: '🏠',
+      },
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        role: 'assistant',
+        message: response.text,
+        actions,
+        usage: response.usage,
+        timestamp: new Date(),
+      },
+    });
+  } catch (error: any) {
+    console.error('Multiple mitigation suggestion error:', error);
+    res.status(500).json({
+      error: 'Failed to suggest mitigation for multiple risks',
       message: error.message,
     });
   }

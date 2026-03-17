@@ -205,6 +205,46 @@ export const mockAIService = {
   },
 
   /**
+   * Suggest mitigation для нескольких рисков
+   */
+  suggestMitigationMultiple: async (risks: Risk[]): Promise<AIResponse> => {
+    await delay(2000);
+
+    const risksList = risks.map((risk, index) => 
+      `${index + 1}. **${risk.risk}**\n   - Impact: ${risk.impactStrength || 'N/A'} | Probability: ${risk.probability || 'N/A'}`
+    ).join('\n\n');
+
+    return {
+      role: 'assistant',
+      message: `💡 Mitigation Strategies for ${risks.length} Risk${risks.length > 1 ? 's' : ''}\n\n${risksList}\n\n---\n\n🛡️ **Recommended Actions:**\n\n**For Critical Risks:**\n• Implement comprehensive monitoring and alerting\n• Create detailed rollback procedures\n• Assign dedicated owners for each risk\n\n**For All Risks:**\n• Test thoroughly in staging environment\n• Document recovery procedures\n• Establish clear communication protocols\n• Schedule regular risk review meetings\n\n**Next Steps:**\n1. Prioritize risks by severity (High/High first)\n2. Assign owners to each risk\n3. Create specific action plans\n4. Set up monitoring and alerts\n5. Document mitigation procedures`,
+      actions: [
+        {
+          type: 'navigate',
+          label: '🔍 Analyze these risks',
+          data: { view: 'analyze' },
+          variant: 'default',
+          icon: '🔍',
+        },
+        {
+          type: 'navigate',
+          label: '➡️ Suggest for different risks',
+          data: { view: 'mitigate' },
+          variant: 'secondary',
+          icon: '➡️',
+        },
+        {
+          type: 'navigate',
+          label: '🏠 Back to menu',
+          data: { view: 'welcome' },
+          variant: 'outline',
+          icon: '🏠',
+        },
+      ],
+      timestamp: new Date(),
+    };
+  },
+
+  /**
    * Free-form chat response
    */
   chat: async (message: string, context: { risks: Risk[] }): Promise<AIResponse> => {
