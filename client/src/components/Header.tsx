@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, RotateCcw } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 export default function Header() {
@@ -81,7 +81,25 @@ export default function Header() {
               className="flex items-center gap-2"
             >
               <Link href="/retrospective-builder">
-                <RotateCcw className="h-4 w-4" />
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {/* Top-left card */}
+                  <rect x="1" y="1" width="6" height="6" rx="1.2" />
+                  {/* Top-right card */}
+                  <rect x="9" y="1" width="6" height="6" rx="1.2" />
+                  {/* Bottom-left card */}
+                  <rect x="1" y="9" width="6" height="6" rx="1.2" />
+                  {/* Bottom-right card */}
+                  <rect x="9" y="9" width="6" height="6" rx="1.2" />
+                </svg>
                 Retro Builder
               </Link>
             </Button>
