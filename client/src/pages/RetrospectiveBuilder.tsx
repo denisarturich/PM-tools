@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSEO } from "@/hooks/useSEO";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, ClipboardCopy, Check, Dices, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -793,6 +794,13 @@ function StageCarousel({ stage, selectedCardId, onSelect, currentIndex, onIndexC
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function RetrospectiveBuilder() {
+  useSEO({
+    title: "Retrospective Builder — Agile Retro Activity Planner — PM-Tools",
+    description:
+      "Browse and select activities for each retrospective stage: Opening, Data Gathering, Idea Generation, Action Planning, and Closing. Mix, match, and copy your plan.",
+    path: "/retrospective-builder",
+  });
+
   const { toast } = useToast();
 
   // selectedCards: stageId → cardId | null
@@ -867,26 +875,6 @@ export default function RetrospectiveBuilder() {
   };
 
   const selectedCount = summaryRows.filter((r) => r.title !== null).length;
-
-  // ── SEO: update document title & meta description per page ─────────────────
-  useEffect(() => {
-    const prevTitle = document.title;
-    document.title = "Retrospective Builder — PM-Tools";
-
-    let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    const prevDesc = metaDesc?.getAttribute("content") ?? "";
-    if (metaDesc) {
-      metaDesc.setAttribute(
-        "content",
-        "Plan your agile retrospective by browsing and selecting activities for each stage: Opening, Data Gathering, Idea Generation, Action Planning, and Closing."
-      );
-    }
-
-    return () => {
-      document.title = prevTitle;
-      if (metaDesc) metaDesc.setAttribute("content", prevDesc);
-    };
-  }, []);
 
   return (
     <div className="flex flex-col bg-background pb-14">

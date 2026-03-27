@@ -1,7 +1,7 @@
 {
-  "name": "Справочник промптов для менеджеров проектов",
-  "short_name": "PM Prompts",
-  "description": "Готовые шаблоны промптов для любых этапов проекта: от discovery до закрытия",
+  "name": "PM-Tools — Prompts, Risk Management & Retro Builder",
+  "short_name": "PM-Tools",
+  "description": "Free toolkit for project managers: AI prompt templates, risk management board, and retrospective activity builder.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -25,6 +25,6 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1d4ed8",
-  "lang": "ru",
+  "lang": "en",
   "orientation": "portrait-primary"
 }

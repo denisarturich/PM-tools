@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useSEO } from "@/hooks/useSEO";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Filters from "@/components/Filters";
@@ -35,6 +36,13 @@ const fetchPrompts = async (stage?: string): Promise<PromptsResponse> => {
 };
 
 export default function Home() {
+  useSEO({
+    title: "AI Prompt Directory for Project Managers — PM-Tools",
+    description:
+      "Ready-made AI prompt templates for every project stage: discovery, planning, execution, delivery, and closure. Search, copy, and use instantly.",
+    path: "/",
+  });
+
   const [selectedStage, setSelectedStage] = useState("all");
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

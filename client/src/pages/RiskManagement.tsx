@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSEO } from "@/hooks/useSEO";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,6 +48,13 @@ export interface Risk {
 }
 
 export default function RiskManagement() {
+  useSEO({
+    title: "Risk Management Board — ROAM Matrix & Risk Table — PM-Tools",
+    description:
+      "Track and manage project risks with a ROAM board, probability–impact matrix, and sortable risk table. Export to Excel. Free for project managers.",
+    path: "/risk-management",
+  });
+
   const [risks, setRisks] = useState<Risk[]>([]);
   const [riskOrder, setRiskOrder] = useState<Record<string, string[]>>({});
   const [activeTab, setActiveTab] = useState<'table' | 'matrix' | 'roam'>('table');
