@@ -8,6 +8,7 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import { Analytics } from "@/components/Analytics";
 import Home from "@/pages/Home";
 import RiskManagement from "@/pages/RiskManagement";
+import RetrospectiveBuilder from "@/pages/RetrospectiveBuilder";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/risk-management" component={RiskManagement} />
+      <Route path="/retrospective-builder" component={RetrospectiveBuilder} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

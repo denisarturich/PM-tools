@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, RotateCcw } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 export default function Header() {
@@ -14,6 +14,10 @@ export default function Header() {
     '/risk-management': {
       title: 'Risk Management',
       description: 'Identify, assess, and mitigate project risks'
+    },
+    '/retrospective-builder': {
+      title: 'Retrospective Builder',
+      description: 'Mix and match activities to craft the perfect retro'
     }
   };
 
@@ -67,6 +71,18 @@ export default function Header() {
               <Link href="/risk-management">
                 <ShieldAlert className="h-4 w-4" />
                 Risk Management
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant={location === '/retrospective-builder' ? 'default' : 'ghost'}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Link href="/retrospective-builder">
+                <RotateCcw className="h-4 w-4" />
+                Retro Builder
               </Link>
             </Button>
           </nav>
